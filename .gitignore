@@ -56,3 +56,4 @@ node_modules/
 .history/*
 .history/**/*
 alembic.ini
+help.txt
