@@ -265,3 +265,43 @@ class User(Base):
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False, default="COLLEGE_ADMIN")
     college_id: Mapped[int] = mapped_column(ForeignKey("colleges.id", ondelete="SET NULL"), nullable=True)
+
+
+class MenuItem(Base):
+    """
+    CMS navigation tree to support:
+    - Top-level: Home, About Us, Colleges, Placements, Activities, Facilities, Contact Us
+    - Nested items: per-college entries, sub-pages, etc.
+    """
+
+    __tablename__ = "menu_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str] = mapped_column(String(255), nullable=True)
+    # main / footer / admin etc.
+    location: Mapped[str] = mapped_column(String(50), nullable=False, default="main")
+    # optional explicit URL override (otherwise derived from page / college)
+    url: Mapped[str] = mapped_column(String(1024), nullable=True)
+    page_id: Mapped[int] = mapped_column(ForeignKey("pages.id", ondelete="SET NULL"), nullable=True)
+    college_id: Mapped[int] = mapped_column(ForeignKey("colleges.id", ondelete="SET NULL"), nullable=True)
+    parent_id: Mapped[int] = mapped_column(ForeignKey("menu_items.id", ondelete="CASCADE"), nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class MediaAsset(Base):
+    """
+    Simple media library used by CMS pages/sections:
+    - hero images, president photo, governing body photos
+    - campus images, facility images, recruiter logos, etc.
+    """
+
+    __tablename__ = "media_assets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    file_url: Mapped[str] = mapped_column(String(1024), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=True)
+    alt_text: Mapped[str] = mapped_column(String(255), nullable=True)
+    media_type: Mapped[str] = mapped_column(String(50), nullable=True)  # image / video / document
+    meta: Mapped[dict] = mapped_column(JSON, nullable=True)

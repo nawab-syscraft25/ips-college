@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Create' }} College</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/colleges/{{ college.id }}/edit{% else %}/admin/colleges/new{% endif %}">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input name="name" class="form-control" value="{{ college.name if college else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Slug</label>
+        <input name="slug" class="form-control" value="{{ college.slug if college else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Subdomain</label>
+        <input name="subdomain" class="form-control" value="{{ college.subdomain if college else '' }}">
+        <div class="form-text">Used by subdomain-based routing (e.g. ibmr.ipsacademy.org).</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Short description</label>
+        <textarea name="short_description" class="form-control" rows="3">{{ college.short_description if college else '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Primary color</label>
+        <input name="theme_primary_color" class="form-control" value="{{ college.theme_primary_color if college else '' }}" placeholder="#004aad">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Secondary color</label>
+        <input name="theme_secondary_color" class="form-control" value="{{ college.theme_secondary_color if college else '' }}" placeholder="#ffb800">
+      </div>
+      <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
+               {% if (college and college.is_active) or not college %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">Active</label>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/colleges" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}

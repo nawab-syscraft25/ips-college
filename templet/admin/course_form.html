@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Create' }} Course</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/courses/{{ course.id }}/edit{% else %}/admin/courses/new{% endif %}">
+  <div class="row">
+    <div class="col-md-7">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input name="name" class="form-control" value="{{ course.name if course else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Slug</label>
+        <input name="slug" class="form-control" value="{{ course.slug if course else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Department</label>
+        <input name="department" class="form-control" value="{{ course.department if course else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Level</label>
+        <input name="level" class="form-control" value="{{ course.level if course else '' }}" placeholder="UG / PG / Ph.D">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Duration</label>
+        <input name="duration" class="form-control" value="{{ course.duration if course else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Fees</label>
+        <input name="fees" class="form-control" value="{{ course.fees if course else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Eligibility</label>
+        <textarea name="eligibility" class="form-control" rows="2">{{ course.eligibility if course else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Overview</label>
+        <textarea name="overview" class="form-control" rows="3">{{ course.overview if course else '' }}</textarea>
+      </div>
+      <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {% if (course and course.is_active) or not course %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">Active</label>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="mb-3">
+        <label class="form-label">College</label>
+        <select name="college_id" class="form-select" required>
+          {% for c in colleges %}
+          <option value="{{ c.id }}" {% if course and course.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Curriculum (free text or JSON)</label>
+        <textarea name="curriculum" class="form-control" rows="2">{{ course.details.curriculum if course and course.details else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Career opportunities</label>
+        <textarea name="career_opportunities" class="form-control" rows="2">{{ course.details.career_opportunities if course and course.details else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Admission process</label>
+        <textarea name="admission_process" class="form-control" rows="2">{{ course.details.admission_process if course and course.details else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/courses" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}
+

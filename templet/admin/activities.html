@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">Activities (by College)</h1>
+  <a href="/admin/activities/new" class="btn btn-primary">Add activity</a>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Type</th>
+      <th>Title</th>
+      <th>College</th>
+      <th style="width: 170px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in activities %}
+    <tr>
+      <td>{{ a.id }}</td>
+      <td>{{ a.type or '—' }}</td>
+      <td>{{ a.title }}</td>
+      <td>{{ a.college.name if a.college else '—' }}</td>
+      <td>
+        <a href="/admin/activities/{{ a.id }}/edit" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+        <form method="post" action="/admin/activities/{{ a.id }}/delete" style="display:inline">
+          <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this activity?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="text-center">No activities found</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+

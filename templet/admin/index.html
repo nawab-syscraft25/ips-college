@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Admin Dashboard</h1>
+
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Quick Links</div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0">
+          <li><a href="/admin/colleges">Manage Colleges</a></li>
+          <li><a href="/admin/pages">Manage Pages</a></li>
+          <li><a href="#">Manage Courses (by College)</a></li>
+          <li><a href="#">Manage Placements (by College)</a></li>
+          <li><a href="#">Manage Activities & Facilities</a></li>
+          <li><a href="#">Admissions, Applications & Enquiries</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">Recent Colleges</div>
+      <ul class="list-group list-group-flush">
+        {% for c in colleges %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>{{ c.name }} <small class="text-muted">(#{{ c.id }})</small></span>
+          <a href="/admin/colleges/{{ c.id }}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+        </li>
+        {% else %}
+        <li class="list-group-item">No colleges yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">Recent Pages</div>
+      <ul class="list-group list-group-flush">
+        {% for p in pages %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>{{ p.title }} <small class="text-muted">(#{{ p.id }})</small></span>
+          <a href="/admin/pages/{{ p.id }}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+        </li>
+        {% else %}
+        <li class="list-group-item">No pages yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

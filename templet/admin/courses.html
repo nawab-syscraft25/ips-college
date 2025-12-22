@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">Courses (by College)</h1>
+  <a href="/admin/courses/new" class="btn btn-primary">Add new course</a>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Slug</th>
+      <th>Level</th>
+      <th>Department</th>
+      <th>College</th>
+      <th style="width: 170px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in courses %}
+    <tr>
+      <td>{{ c.id }}</td>
+      <td>{{ c.name }}</td>
+      <td>{{ c.slug }}</td>
+      <td>{{ c.level or '—' }}</td>
+      <td>{{ c.department or '—' }}</td>
+      <td>{{ c.college.name if c.college else '—' }}</td>
+      <td>
+        <a href="/admin/courses/{{ c.id }}/edit" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+        <form method="post" action="/admin/courses/{{ c.id }}/delete" style="display:inline">
+          <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this course?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="text-center">No courses found</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+

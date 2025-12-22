@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Create' }} Page</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/pages/{{ page.id }}/edit{% else %}/admin/pages/new{% endif %}">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input name="title" class="form-control" value="{{ page.title if page else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Slug</label>
+        <input name="slug" class="form-control" value="{{ page.slug if page else '' }}" required>
+        <div class="form-text">Used in URLs (e.g. /&lt;college&gt;/{{ page.slug if page else 'about' }}).</div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <label class="form-label">College</label>
+        <select name="college_id" class="form-select">
+          <option value="">— None (global page) —</option>
+          {% for c in colleges %}
+          <option value="{{ c.id }}" {% if page and page.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/pages" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Add' }} Media</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/cms/media/{{ asset.id }}/edit{% else %}/admin/cms/media/new{% endif %}">
+  <div class="row">
+    <div class="col-md-7">
+      <div class="mb-3">
+        <label class="form-label">File URL</label>
+        <input name="file_url" class="form-control" value="{{ asset.file_url if asset else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input name="title" class="form-control" value="{{ asset.title if asset else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Alt text</label>
+        <input name="alt_text" class="form-control" value="{{ asset.alt_text if asset else '' }}">
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="mb-3">
+        <label class="form-label">Media type</label>
+        <select name="media_type" class="form-select">
+          <option value="">Auto</option>
+          <option value="image" {% if asset and asset.media_type == 'image' %}selected{% endif %}>Image</option>
+          <option value="video" {% if asset and asset.media_type == 'video' %}selected{% endif %}>Video</option>
+          <option value="document" {% if asset and asset.media_type == 'document' %}selected{% endif %}>Document</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/cms/media" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}
+

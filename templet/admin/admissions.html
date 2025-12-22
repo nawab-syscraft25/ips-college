@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">Admissions (by College)</h1>
+  <a href="/admin/admissions/new" class="btn btn-primary">Add admission info</a>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>College</th>
+      <th style="width: 170px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in admissions %}
+    <tr>
+      <td>{{ a.id }}</td>
+      <td>{{ a.college.name if a.college else '—' }}</td>
+      <td>
+        <a href="/admin/admissions/{{ a.id }}/edit" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+        <form method="post" action="/admin/admissions/{{ a.id }}/delete" style="display:inline">
+          <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this admission info?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="text-center">No admissions info found</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Add' }} Placement Stats</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/placements/{{ placement.id }}/edit{% else %}/admin/placements/new{% endif %}">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">College</label>
+        <select name="college_id" class="form-select" required>
+          {% for c in colleges %}
+          <option value="{{ c.id }}" {% if placement and placement.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Year</label>
+        <input name="year" type="number" class="form-control" value="{{ placement.year if placement else '' }}" required>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Highest package</label>
+        <input name="highest_package" class="form-control" value="{{ placement.highest_package if placement else '' }}" placeholder="e.g., 24.0">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Average package</label>
+        <input name="average_package" class="form-control" value="{{ placement.average_package if placement else '' }}" placeholder="e.g., 6.5">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Placement %</label>
+        <input name="placement_percentage" class="form-control" value="{{ placement.placement_percentage if placement else '' }}" placeholder="e.g., 92">
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/placements" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}
+

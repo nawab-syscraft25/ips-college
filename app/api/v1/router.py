@@ -1,8 +1,36 @@
 from fastapi import APIRouter
-from app.api.v1 import colleges, pages, courses
 
 api_router = APIRouter()
 
-api_router.include_router(colleges.router, prefix="/colleges", tags=["Colleges"])
-api_router.include_router(pages.router, prefix="/pages", tags=["Pages"])
-api_router.include_router(courses.router, prefix="/courses", tags=["Courses"])
+# Try importing and including optional sub-routers if present.
+try:
+	from app.api.v1 import colleges
+except Exception:
+	colleges = None
+
+try:
+	from app.api.v1 import pages
+except Exception:
+	pages = None
+
+try:
+	from app.api.v1 import courses
+except Exception:
+	courses = None
+
+try:
+	from app.api.v1 import admin
+except Exception:
+	admin = None
+
+if colleges and hasattr(colleges, "router"):
+	api_router.include_router(colleges.router, prefix="/colleges", tags=["Colleges"])
+
+if pages and hasattr(pages, "router"):
+	api_router.include_router(pages.router, prefix="/pages", tags=["Pages"])
+
+if courses and hasattr(courses, "router"):
+	api_router.include_router(courses.router, prefix="/courses", tags=["Courses"])
+
+if admin and hasattr(admin, "router"):
+	api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])

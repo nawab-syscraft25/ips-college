@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Enquiries</h1>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>College</th>
+      <th>Message</th>
+      <th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in enquiries %}
+    <tr>
+      <td>{{ e.id }}</td>
+      <td>{{ e.name }}</td>
+      <td>{{ e.email }}</td>
+      <td>{{ e.phone or '—' }}</td>
+      <td>{{ e.college.name if e.college else '—' }}</td>
+      <td style="max-width: 320px;">{{ e.message or '—' }}</td>
+      <td>{{ e.created_at }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="text-center">No enquiries found</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+

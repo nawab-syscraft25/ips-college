@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Add' }} Faculty</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/faculty/{{ member.id }}/edit{% else %}/admin/faculty/new{% endif %}">
+  <div class="row">
+    <div class="col-md-7">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input name="name" class="form-control" value="{{ member.name if member else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Designation</label>
+        <input name="designation" class="form-control" value="{{ member.designation if member else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Qualification</label>
+        <input name="qualification" class="form-control" value="{{ member.qualification if member else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Photo URL</label>
+        <input name="photo_url" class="form-control" value="{{ member.photo_url if member else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Bio</label>
+        <textarea name="bio" class="form-control" rows="3">{{ member.bio if member else '' }}</textarea>
+      </div>
+      <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {% if (member and member.is_active) or not member %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">Active</label>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="mb-3">
+        <label class="form-label">College</label>
+        <select name="college_id" class="form-select" required>
+          {% for c in colleges %}
+          <option value="{{ c.id }}" {% if member and member.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/faculty" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}
+

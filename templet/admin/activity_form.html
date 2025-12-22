@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Add' }} Activity</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/activities/{{ activity.id }}/edit{% else %}/admin/activities/new{% endif %}">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">College</label>
+        <select name="college_id" class="form-select" required>
+          {% for c in colleges %}
+          <option value="{{ c.id }}" {% if activity and activity.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Type</label>
+        <input name="type" class="form-control" value="{{ activity.type if activity else '' }}" placeholder="Event / Workshop / Sports">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input name="title" class="form-control" value="{{ activity.title if activity else '' }}" required>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Image URL</label>
+        <input name="image_url" class="form-control" value="{{ activity.image_url if activity else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Event date</label>
+        <input name="event_date" type="datetime-local" class="form-control" value="{{ activity.event_date if activity else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="3">{{ activity.description if activity else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/activities" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}
+

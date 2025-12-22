@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">Faculty (by College)</h1>
+  <a href="/admin/faculty/new" class="btn btn-primary">Add faculty</a>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Designation</th>
+      <th>College</th>
+      <th style="width: 170px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in faculty %}
+    <tr>
+      <td>{{ m.id }}</td>
+      <td>{{ m.name }}</td>
+      <td>{{ m.designation or '—' }}</td>
+      <td>{{ m.college.name if m.college else '—' }}</td>
+      <td>
+        <a href="/admin/faculty/{{ m.id }}/edit" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+        <form method="post" action="/admin/faculty/{{ m.id }}/delete" style="display:inline">
+          <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this faculty member?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="text-center">No faculty found</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+

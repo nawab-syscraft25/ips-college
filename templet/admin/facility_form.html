@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Add' }} Facility</h1>
+
+<form method="post" action="{% if action == 'edit' %}/admin/facilities/{{ facility.id }}/edit{% else %}/admin/facilities/new{% endif %}">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">College</label>
+        <select name="college_id" class="form-select" required>
+          {% for c in colleges %}
+          <option value="{{ c.id }}" {% if facility and facility.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input name="name" class="form-control" value="{{ facility.name if facility else '' }}" required>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Image URL</label>
+        <input name="image_url" class="form-control" value="{{ facility.image_url if facility else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="3">{{ facility.description if facility else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="/admin/facilities" class="btn btn-link">Cancel</a>
+</form>
+{% endblock %}
+
