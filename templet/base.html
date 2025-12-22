@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/styles.css">
   </head>
   <body class="bg-surface">
+    {% if request.session.get('admin_user') %}
     <!-- Topbar -->
     <div class="topbar">
       <div class="d-flex align-items-center justify-content-between px-3 px-lg-4" style="height:100%;">
@@ -105,43 +106,51 @@
             </div>
           </div>
           {% endif %}
+            {% block content %}
+    <div class="card">
+      <div class="card-header">Recent Applications</div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <th>Applicant Name</th>
+              <th>Program</th>
+              <th>Status</th>
+              <th>Date Applied</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in recent_applications or [] %}
+            <tr>
+              <td>{{ app.name }}</td>
+              <td>{{ app.program }}</td>
+              <td><span class="badge {{ 'badge-success' if app.status == 'Approved' else ('badge-warning' if app.status == 'Pending' else 'badge-danger') }}">{{ app.status }}</span></td>
+              <td>{{ app.applied_at }}</td>
+              <td><a class="btn btn-outline-primary btn-sm" href="{{ app.view_url or '#' }}">View</a></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-muted">No recent applications.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endblock %}
 
-          {% block content %}
-          <div class="card">
-            <div class="card-header">Recent Applications</div>
-            <div class="card-body">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Applicant Name</th>
-                    <th>Program</th>
-                    <th>Status</th>
-                    <th>Date Applied</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for app in recent_applications or [] %}
-                  <tr>
-                    <td>{{ app.name }}</td>
-                    <td>{{ app.program }}</td>
-                    <td><span class="badge {{ 'badge-success' if app.status == 'Approved' else ('badge-warning' if app.status == 'Pending' else 'badge-danger') }}">{{ app.status }}</span></td>
-                    <td>{{ app.applied_at }}</td>
-                    <td><a class="btn btn-outline-primary btn-sm" href="{{ app.view_url or '#' }}">View</a></td>
-                  </tr>
-                  {% else %}
-                  <tr>
-                    <td colspan="5" class="text-muted">No recent applications.</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {% endblock %}
+          {# page content will be provided by child templates #}
         </div>
       </div>
     </div>
+    {% else %}
+    <!-- Minimal layout for unauthenticated access (login page) -->
+    <div class="container py-5">
+      {# child templates render content here #}
+      <!-- content block defined once below -->
+    </div>
+    {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -149,5 +158,8 @@
         document.getElementById('wrapper').classList.toggle('toggled');
       });
     </script>
+
+    {# Single block content for child templates (default: Recent Applications) #}
+  
   </body>
 </html>
