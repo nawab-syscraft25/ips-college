@@ -1,0 +1,22 @@
+# Core Framework
+fastapi
+uvicorn[standard]
+
+# ORM & Database
+sqlalchemy
+pymysql
+alembic
+
+# Config & Validation
+pydantic
+pydantic-settings
+
+# Security (for future auth)
+python-jose
+passlib[bcrypt]
+
+# File Uploads
+python-multipart
+
+# Utilities
+python-dotenv

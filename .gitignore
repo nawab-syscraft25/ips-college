@@ -1,0 +1,58 @@
+.venv/
+env/
+venv/
+ENV/
+/.env
+.env.*
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.cache/
+htmlcov/
+coverage.xml
+.coverage
+dist/
+build/
+eggs/
+*.egg-info/
+pip-wheel-metadata/
+wheelhouse/
+*.egg
+
+# Logs
+*.log
+
+# Database
+*.sqlite3
+*.db
+
+# IDEs
+.vscode/
+.idea/
+.vscode/*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python byte-compiled
+__pycache__/
+
+# Secrets
+*.key
+*.pem
+
+# Packaging
+/.tox/
+
+# node modules (if frontend added later)
+node_modules/
+
+# Do NOT ignore Alembic versions or migration scripts by default — they should be tracked.
+# Keep `alembic/versions` in source control so migrations are versioned.
+.history/
+.history/*
+.history/**/*
+alembic.ini
