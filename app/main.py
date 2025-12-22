@@ -35,3 +35,11 @@ else:
 @app.get("/health")
 def health():
     return {"status": "OK"}
+
+
+if __name__ == "__main__":
+    # Run the FastAPI app with Uvicorn on the requested port for local testing.
+    # Use: python -m app.main  (or `python app/main.py`) to start server on port 6666
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=6666)
