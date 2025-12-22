@@ -70,12 +70,43 @@ def admin_index(request: Request, db: Session = Depends(get_db)):
     _ensure_default_admin(db)
     colleges = db.query(College).order_by(College.id.desc()).all()
     pages = db.query(Page).order_by(Page.id.desc()).all()
+
+    # Dashboard stats
+    stats = {
+        "colleges": db.query(College).count(),
+        "faculty": db.query(Faculty).count(),
+        "applications": db.query(Application).count(),
+        "enquiries": db.query(Enquiry).count(),
+    }
+
+    # Recent applications (most recent 5)
+    recent_apps = []
+    apps = db.query(Application).order_by(Application.created_at.desc()).limit(5).all()
+    for a in apps:
+        program = None
+        if a.course_id:
+            course = db.query(Course).filter(Course.id == a.course_id).first()
+            program = course.name if course else "-"
+        recent_apps.append(
+            {
+                "name": a.name,
+                "program": program or "-",
+                "status": a.status or "",
+                "applied_at": a.created_at.strftime("%b %d, %Y") if a.created_at else "",
+                "view_url": f"/admin/applications/{a.id}" ,
+            }
+        )
+
     return templates.TemplateResponse(
         "admin/index.html",
         {
             "request": request,
             "colleges": colleges,
             "pages": pages,
+            "title": "Dashboard",
+            "subtitle": "Welcome back to IPS Academy Admin Panel",
+            "stats": stats,
+            "recent_applications": recent_apps,
         },
     )
 
@@ -181,7 +212,7 @@ async def update_menu(request: Request, menu_id: int, db: Session = Depends(get_
 
 
 @router.post("/cms/menus/{menu_id}/delete", include_in_schema=False)
-def delete_menu(menu_id: int, db: Session = Depends(get_db)):
+def delete_menu(request: Request, menu_id: int, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     menu = db.query(MenuItem).filter(MenuItem.id == menu_id).first()
@@ -258,7 +289,7 @@ async def update_media(request: Request, asset_id: int, db: Session = Depends(ge
 
 
 @router.post("/cms/media/{asset_id}/delete", include_in_schema=False)
-def delete_media(asset_id: int, db: Session = Depends(get_db)):
+def delete_media(request: Request, asset_id: int, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     asset = db.query(MediaAsset).filter(MediaAsset.id == asset_id).first()
@@ -937,7 +968,7 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
 
 
 @router.post("/pages/{page_id}/sections/{section_id}/delete", include_in_schema=False)
-def delete_page_section(page_id: int, section_id: int, db: Session = Depends(get_db)):
+def delete_page_section(request: Request, page_id: int, section_id: int, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     section = db.query(PageSection).filter(PageSection.id == section_id).first()
@@ -1014,7 +1045,7 @@ async def update_section_item(request: Request, page_id: int, section_id: int, i
 
 
 @router.post("/pages/{page_id}/sections/{section_id}/items/{item_id}/delete", include_in_schema=False)
-def delete_section_item(page_id: int, section_id: int, item_id: int, db: Session = Depends(get_db)):
+def delete_section_item(request: Request, page_id: int, section_id: int, item_id: int, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     item = db.query(SectionItem).filter(SectionItem.id == item_id).first()
