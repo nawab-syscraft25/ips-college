@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, DateTime, Text, func
+from sqlalchemy import Integer, String, Boolean, DateTime, Text, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
@@ -6,7 +6,8 @@ from app.core.database import Base
 class College(Base):
     __tablename__ = "colleges"
 
-    id: Mapped[int] = mapped_column(Integer:=None, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    parent_id: Mapped[int] = mapped_column(ForeignKey("colleges.id", ondelete="SET NULL"), nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     subdomain: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
@@ -18,6 +19,9 @@ class College(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+    parent: Mapped["College"] = relationship("College", remote_side=[id], back_populates="children")
+    children: Mapped[list["College"]] = relationship("College", back_populates="parent", cascade="all, delete-orphan")
 
     pages = relationship("Page", back_populates="college", cascade="all, delete-orphan")
     courses = relationship("Course", back_populates="college", cascade="all, delete-orphan")

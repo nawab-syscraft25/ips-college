@@ -2,6 +2,13 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
+# Make project root importable so `from app...` works when running alembic
+import os
+import sys
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+	sys.path.insert(0, project_root)
+
 from app.core.config import settings
 from app.core.database import Base
 
