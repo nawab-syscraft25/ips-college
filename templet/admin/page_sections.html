@@ -8,6 +8,26 @@
   <a href="/admin/pages/{{ page.id }}/sections/new" class="btn btn-primary">Add section</a>
 </div>
 
+{% if page.shared_sections %}
+<div class="mb-3">
+  <h5 class="mb-2">Attached Shared Sections</h5>
+  <div class="list-group mb-3">
+    {% for ss in page.shared_sections %}
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <strong>{{ ss.section_title or ss.section_type }}</strong>
+        <div class="small text-muted">Type: {{ ss.section_type }}{% if not ss.is_active %} — inactive{% endif %}</div>
+      </div>
+      <div>
+        <a href="/admin/cms/shared-sections/{{ ss.id }}/edit" class="btn btn-sm btn-outline-primary me-2">Edit shared</a>
+        <a href="/admin/cms/shared-sections/{{ ss.id }}/items" class="btn btn-sm btn-outline-secondary">Manage items</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 <table class="table table-striped table-bordered align-middle">
   <thead class="table-light">
     <tr>

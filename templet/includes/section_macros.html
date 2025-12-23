@@ -1,0 +1,100 @@
+{% macro render_carousel(items, carousel_id='carousel') -%}
+{% if not items %}{% return %}{% endif %}
+<div id="{{ carousel_id }}" class="carousel slide mb-4" data-bs-ride="carousel">
+  <div class="carousel-indicators">
+    {% for i in range(items|length) %}
+    <button type="button" data-bs-target="#{{ carousel_id }}" data-bs-slide-to="{{ i }}" {% if i==0 %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ i+1 }}"></button>
+    {% endfor %}
+  </div>
+  <div class="carousel-inner">
+    {% for it in items %}
+    <div class="carousel-item {% if loop.index0 == 0 %}active{% endif %}">
+      {% if it.image_url %}
+      <img src="{{ it.image_url }}" class="d-block w-100" alt="{{ it.title or '' }}">
+      {% endif %}
+      {% if it.title or it.description or it.cta_link %}
+      <div class="carousel-caption d-none d-md-block text-start bg-dark bg-opacity-25 rounded p-3">
+        {% if it.title %}<h5>{{ it.title }}</h5>{% endif %}
+        {% if it.description %}<p>{{ it.description }}</p>{% endif %}
+        {% if it.cta_link and it.cta_text %}<a class="btn btn-primary btn-sm" href="{{ it.cta_link }}">{{ it.cta_text }}</a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#{{ carousel_id }}" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#{{ carousel_id }}" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+{%- endmacro %}
+
+
+{% macro render_card_grid(items, cols=3) -%}
+{% if not items %}{% return %}{% endif %}
+<div class="row g-3 mb-4">
+  {% for it in items %}
+  <div class="col-md-{{ 12//cols }}">
+    <div class="card h-100">
+      {% if it.image_url %}
+      <img src="{{ it.image_url }}" class="card-img-top" alt="{{ it.title or '' }}">
+      {% endif %}
+      <div class="card-body">
+        {% if it.title %}<h5 class="card-title">{{ it.title }}</h5>{% endif %}
+        {% if it.subtitle %}<h6 class="card-subtitle mb-2 text-muted">{{ it.subtitle }}</h6>{% endif %}
+        {% if it.description %}<p class="card-text">{{ it.description }}</p>{% endif %}
+        {% if it.cta_link and it.cta_text %}<a href="{{ it.cta_link }}" class="btn btn-sm btn-primary">{{ it.cta_text }}</a>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+
+{% macro render_generic_section(section) -%}
+{% if not section %}{% return %}{% endif %}
+<section class="py-4">
+  <div class="container">
+    {% if section.section_title %}<h2 class="mb-3">{{ section.section_title }}</h2>{% endif %}
+    {% if section.section_subtitle %}<p class="text-muted mb-3">{{ section.section_subtitle }}</p>{% endif %}
+    {% if section.items %}
+      {{ render_card_grid(section.items, cols=3) }}
+    {% endif %}
+  </div>
+</section>
+{%- endmacro %}
+
+
+{% macro render_section(section, idx=0) -%}
+{% if not section %}{% return %}{% endif %}
+{# choose rendering based on section_type #}
+{% set t = (section.section_type or '').upper() %}
+{% if t in ['HERO','CAROUSEL','BANNER'] %}
+  {{ render_carousel(section.items, carousel_id='carousel_'+(section.id|string)) }}
+{% elif t in ['CARDS','GRID'] %}
+  {{ render_card_grid(section.items, cols=3) }}
+{% else %}
+  {{ render_generic_section(section) }}
+{% endif %}
+{%- endmacro %}
+
+
+{% macro render_page_sections(page) -%}
+{% if not page %}{% return %}{% endif %}
+{% for sec in page.sections %}
+  {{ render_section(sec, loop.index0) }}
+{% endfor %}
+{%- endmacro %}
+
+
+{% macro render_shared_sections(shared_sections) -%}
+{% if not shared_sections %}{% return %}{% endif %}
+{% for sec in shared_sections %}
+  {{ render_section(sec, loop.index0) }}
+{% endfor %}
+{%- endmacro %}

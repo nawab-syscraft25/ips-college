@@ -28,6 +28,16 @@ placement_recruiters = Table(
     extend_existing=True,
 )
 
+# Association table to attach shared sections to pages (many-to-many)
+page_shared_sections = Table(
+    "page_shared_sections",
+    Base.metadata,
+    Column("page_id", ForeignKey("pages.id", ondelete="CASCADE"), primary_key=True),
+    Column("shared_section_id", ForeignKey("shared_sections.id", ondelete="CASCADE"), primary_key=True),
+    Column("sort_order", Integer, default=0),
+    extend_existing=True,
+)
+
 # Import `College` from app.models so you can edit `app/models/college.py` and
 # have Alembic/autogenerate pick up changes from that file.
 from app.models.college import College  # noqa: F401
@@ -51,6 +61,13 @@ class Page(Base):
     college = relationship("College", back_populates="pages")
     seo = relationship("SEOMeta", back_populates="page", uselist=False, cascade="all, delete-orphan")
     sections = relationship("PageSection", back_populates="page", cascade="all, delete-orphan", order_by="PageSection.sort_order")
+    # shared sections can be attached to multiple pages
+    shared_sections = relationship(
+        "SharedSection",
+        secondary=page_shared_sections,
+        back_populates="pages",
+        order_by="page_shared_sections.c.sort_order",
+    )
 
 
 class SEOMeta(Base):
@@ -104,6 +121,39 @@ class SectionItem(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     section = relationship("PageSection", back_populates="items")
+
+
+class SharedSection(Base):
+    __tablename__ = "shared_sections"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    section_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    section_title: Mapped[str] = mapped_column(String(255), nullable=True)
+    section_subtitle: Mapped[str] = mapped_column(String(255), nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # pages that include this shared section
+    pages = relationship("Page", secondary=page_shared_sections, back_populates="shared_sections")
+    items = relationship("SharedSectionItem", back_populates="section", cascade="all, delete-orphan", order_by="SharedSectionItem.sort_order")
+
+
+class SharedSectionItem(Base):
+    __tablename__ = "shared_section_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    shared_section_id: Mapped[int] = mapped_column(ForeignKey("shared_sections.id", ondelete="CASCADE"), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=True)
+    subtitle: Mapped[str] = mapped_column(String(255), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    image_url: Mapped[str] = mapped_column(String(1024), nullable=True)
+    video_url: Mapped[str] = mapped_column(String(1024), nullable=True)
+    cta_text: Mapped[str] = mapped_column(String(255), nullable=True)
+    cta_link: Mapped[str] = mapped_column(String(1024), nullable=True)
+    extra_data: Mapped[dict] = mapped_column(JSON, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    section = relationship("SharedSection", back_populates="items")
 
 
 class Course(Base):

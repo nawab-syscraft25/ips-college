@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">Shared Sections</h1>
+  <a href="/admin/cms/shared-sections/new" class="btn btn-primary">Add shared section</a>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Type</th>
+      <th>Active</th>
+      <th style="width: 160px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in sections %}
+    <tr>
+      <td>{{ s.id }}</td>
+      <td>{{ s.section_title or '—' }}</td>
+      <td>{{ s.section_type }}</td>
+      <td>{% if s.is_active %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+      <td>
+        <a href="/admin/cms/shared-sections/{{ s.id }}/edit" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+        <form method="post" action="/admin/cms/shared-sections/{{ s.id }}/delete" style="display:inline">
+          <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this shared section?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="text-center">No shared sections defined</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

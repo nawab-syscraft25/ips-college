@@ -21,6 +21,9 @@ from app.schemas.schema import (
     Enquiry,
     MenuItem,
     MediaAsset,
+    SEOMeta,
+    SharedSection,
+    SharedSectionItem,
 )
 from app.utils.security import verify_password, hash_password
 
@@ -118,12 +121,21 @@ def admin_index(request: Request, db: Session = Depends(get_db)):
 def list_menus(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    menus = db.query(MenuItem).order_by(MenuItem.location, MenuItem.parent_id, MenuItem.sort_order).all()
-    pages = db.query(Page).order_by(Page.title).all()
     colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(MenuItem).order_by(MenuItem.location, MenuItem.parent_id, MenuItem.sort_order)
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(MenuItem.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    menus = q.all()
+    pages = db.query(Page).order_by(Page.title).all()
     return templates.TemplateResponse(
         "admin/menus.html",
-        {"request": request, "menus": menus, "pages": pages, "colleges": colleges},
+        {"request": request, "menus": menus, "pages": pages, "colleges": colleges, "selected_college_id": selected_college_id},
     )
 
 
@@ -220,6 +232,165 @@ def delete_menu(request: Request, menu_id: int, db: Session = Depends(get_db)):
         db.delete(menu)
         db.commit()
     return RedirectResponse(url="/admin/cms/menus", status_code=303)
+
+
+# -------------------
+# CMS: Shared Sections (reusable across pages)
+# -------------------
+@router.get("/cms/shared-sections", include_in_schema=False)
+def list_shared_sections(request: Request, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    sections = db.query(SharedSection).order_by(SharedSection.id.desc()).all()
+    return templates.TemplateResponse("admin/shared_sections.html", {"request": request, "sections": sections})
+
+
+@router.get("/cms/shared-sections/new", include_in_schema=False)
+def new_shared_section_form(request: Request, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    return templates.TemplateResponse("admin/shared_section_form.html", {"request": request, "action": "create", "section": None})
+
+
+@router.post("/cms/shared-sections/new", include_in_schema=False)
+async def create_shared_section(request: Request, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    form = await request.form()
+    section = SharedSection(
+        section_type=form.get("section_type") or "CONTENT",
+        section_title=form.get("section_title") or None,
+        section_subtitle=form.get("section_subtitle") or None,
+        sort_order=int(form.get("sort_order") or 0),
+        is_active=bool(form.get("is_active")),
+    )
+    db.add(section)
+    db.commit()
+    return RedirectResponse(url="/admin/cms/shared-sections", status_code=303)
+
+
+@router.get("/cms/shared-sections/{section_id}/edit", include_in_schema=False)
+def edit_shared_section_form(request: Request, section_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    section = db.query(SharedSection).filter(SharedSection.id == section_id).first()
+    return templates.TemplateResponse("admin/shared_section_form.html", {"request": request, "action": "edit", "section": section})
+
+
+@router.post("/cms/shared-sections/{section_id}/edit", include_in_schema=False)
+async def update_shared_section(request: Request, section_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    form = await request.form()
+    section = db.query(SharedSection).filter(SharedSection.id == section_id).first()
+    if not section:
+        return RedirectResponse(url="/admin/cms/shared-sections", status_code=303)
+    section.section_type = form.get("section_type") or "CONTENT"
+    section.section_title = form.get("section_title") or None
+    section.section_subtitle = form.get("section_subtitle") or None
+    section.sort_order = int(form.get("sort_order") or 0)
+    section.is_active = bool(form.get("is_active"))
+    db.add(section)
+    db.commit()
+    return RedirectResponse(url="/admin/cms/shared-sections", status_code=303)
+
+
+@router.post("/cms/shared-sections/{section_id}/delete", include_in_schema=False)
+def delete_shared_section(request: Request, section_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    section = db.query(SharedSection).filter(SharedSection.id == section_id).first()
+    if section:
+        db.delete(section)
+        db.commit()
+    return RedirectResponse(url="/admin/cms/shared-sections", status_code=303)
+
+
+# SharedSection items (slides/cards)
+@router.get("/cms/shared-sections/{section_id}/items", include_in_schema=False)
+def list_shared_section_items(request: Request, section_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    section = db.query(SharedSection).filter(SharedSection.id == section_id).first()
+    if not section:
+        return RedirectResponse(url="/admin/cms/shared-sections", status_code=303)
+    items = db.query(SharedSectionItem).filter(SharedSectionItem.shared_section_id == section_id).order_by(SharedSectionItem.sort_order).all()
+    return templates.TemplateResponse("admin/shared_section_items.html", {"request": request, "section": section, "items": items})
+
+
+@router.get("/cms/shared-sections/{section_id}/items/new", include_in_schema=False)
+def new_shared_section_item_form(request: Request, section_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    section = db.query(SharedSection).filter(SharedSection.id == section_id).first()
+    if not section:
+        return RedirectResponse(url="/admin/cms/shared-sections", status_code=303)
+    return templates.TemplateResponse("admin/shared_section_item_form.html", {"request": request, "action": "create", "section": section, "item": None})
+
+
+@router.post("/cms/shared-sections/{section_id}/items/new", include_in_schema=False)
+async def create_shared_section_item(request: Request, section_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    form = await request.form()
+    item = SharedSectionItem(
+        shared_section_id=section_id,
+        title=form.get("title") or None,
+        subtitle=form.get("subtitle") or None,
+        description=form.get("description") or None,
+        image_url=form.get("image_url") or None,
+        video_url=form.get("video_url") or None,
+        cta_text=form.get("cta_text") or None,
+        cta_link=form.get("cta_link") or None,
+        extra_data=None,
+        sort_order=int(form.get("sort_order") or 0),
+    )
+    db.add(item)
+    db.commit()
+    return RedirectResponse(url=f"/admin/cms/shared-sections/{section_id}/items", status_code=303)
+
+
+@router.get("/cms/shared-sections/{section_id}/items/{item_id}/edit", include_in_schema=False)
+def edit_shared_section_item_form(request: Request, section_id: int, item_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    section = db.query(SharedSection).filter(SharedSection.id == section_id).first()
+    item = db.query(SharedSectionItem).filter(SharedSectionItem.id == item_id, SharedSectionItem.shared_section_id == section_id).first()
+    if not section or not item:
+        return RedirectResponse(url=f"/admin/cms/shared-sections/{section_id}/items", status_code=303)
+    return templates.TemplateResponse("admin/shared_section_item_form.html", {"request": request, "action": "edit", "section": section, "item": item})
+
+
+@router.post("/cms/shared-sections/{section_id}/items/{item_id}/edit", include_in_schema=False)
+async def update_shared_section_item(request: Request, section_id: int, item_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    form = await request.form()
+    item = db.query(SharedSectionItem).filter(SharedSectionItem.id == item_id, SharedSectionItem.shared_section_id == section_id).first()
+    if not item:
+        return RedirectResponse(url=f"/admin/cms/shared-sections/{section_id}/items", status_code=303)
+    item.title = form.get("title") or None
+    item.subtitle = form.get("subtitle") or None
+    item.description = form.get("description") or None
+    item.image_url = form.get("image_url") or None
+    item.video_url = form.get("video_url") or None
+    item.cta_text = form.get("cta_text") or None
+    item.cta_link = form.get("cta_link") or None
+    item.sort_order = int(form.get("sort_order") or 0)
+    db.add(item)
+    db.commit()
+    return RedirectResponse(url=f"/admin/cms/shared-sections/{section_id}/items", status_code=303)
+
+
+@router.post("/cms/shared-sections/{section_id}/items/{item_id}/delete", include_in_schema=False)
+def delete_shared_section_item(request: Request, section_id: int, item_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    item = db.query(SharedSectionItem).filter(SharedSectionItem.id == item_id, SharedSectionItem.shared_section_id == section_id).first()
+    if item:
+        db.delete(item)
+        db.commit()
+    return RedirectResponse(url=f"/admin/cms/shared-sections/{section_id}/items", status_code=303)
 
 
 # -------------------
@@ -1163,8 +1334,12 @@ def delete_section_item(request: Request, page_id: int, section_id: int, item_id
 def new_page_form(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    return templates.TemplateResponse("admin/page_form.html", {"request": request, "action": "create", "page": None, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    shared_sections = db.query(SharedSection).order_by(SharedSection.sort_order).all()
+    return templates.TemplateResponse(
+        "admin/page_form.html",
+        {"request": request, "action": "create", "page": None, "colleges": colleges, "shared_sections": shared_sections},
+    )
 
 @router.post("/pages/new", include_in_schema=False)
 async def create_page(request: Request, db: Session = Depends(get_db)):
@@ -1178,6 +1353,48 @@ async def create_page(request: Request, db: Session = Depends(get_db)):
     db.add(page)
     db.commit()
     db.refresh(page)
+
+    # attach shared sections if any selected
+    try:
+        selected = form.getlist("shared_section_ids")
+    except Exception:
+        selected = form.get("shared_section_ids")
+    if selected:
+        if isinstance(selected, str):
+            selected = [selected]
+        try:
+            ids = [int(x) for x in selected if x]
+            if ids:
+                sections = db.query(SharedSection).filter(SharedSection.id.in_(ids)).all()
+                page.shared_sections = sections
+                db.add(page)
+                db.commit()
+        except Exception:
+            pass
+
+    # handle SEO meta if provided
+    meta_title = form.get("meta_title") or None
+    meta_description = form.get("meta_description") or None
+    meta_keywords = form.get("meta_keywords") or None
+    canonical_url = form.get("canonical_url") or None
+    og_title = form.get("og_title") or None
+    og_description = form.get("og_description") or None
+    og_image = form.get("og_image") or None
+    schema_json = form.get("schema_json") or None
+    if any([meta_title, meta_description, meta_keywords, canonical_url, og_title, og_description, og_image, schema_json]):
+        seo = SEOMeta(
+            page_id=page.id,
+            meta_title=meta_title,
+            meta_description=meta_description,
+            meta_keywords=meta_keywords,
+            canonical_url=canonical_url,
+            og_title=og_title,
+            og_description=og_description,
+            og_image=og_image,
+            schema_json=schema_json,
+        )
+        db.add(seo)
+        db.commit()
     return RedirectResponse(url="/admin/pages", status_code=303)
 
 @router.get("/pages/{page_id}/edit", include_in_schema=False)
@@ -1185,8 +1402,12 @@ def edit_page_form(request: Request, page_id: int, db: Session = Depends(get_db)
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     page = db.query(Page).filter(Page.id == page_id).first()
-    colleges = db.query(College).all()
-    return templates.TemplateResponse("admin/page_form.html", {"request": request, "action": "edit", "page": page, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    shared_sections = db.query(SharedSection).order_by(SharedSection.sort_order).all()
+    return templates.TemplateResponse(
+        "admin/page_form.html",
+        {"request": request, "action": "edit", "page": page, "colleges": colleges, "shared_sections": shared_sections},
+    )
 
 @router.post("/pages/{page_id}/edit", include_in_schema=False)
 async def update_page(request: Request, page_id: int, db: Session = Depends(get_db)):
@@ -1200,8 +1421,66 @@ async def update_page(request: Request, page_id: int, db: Session = Depends(get_
     page.slug = form.get("slug")
     college_id = form.get("college_id") or None
     page.college_id = int(college_id) if college_id else None
+
+    # update or create SEO meta
+    meta_title = form.get("meta_title") or None
+    meta_description = form.get("meta_description") or None
+    meta_keywords = form.get("meta_keywords") or None
+    canonical_url = form.get("canonical_url") or None
+    og_title = form.get("og_title") or None
+    og_description = form.get("og_description") or None
+    og_image = form.get("og_image") or None
+    schema_json = form.get("schema_json") or None
+
+    seo = db.query(SEOMeta).filter(SEOMeta.page_id == page.id).first()
+    if seo:
+        seo.meta_title = meta_title
+        seo.meta_description = meta_description
+        seo.meta_keywords = meta_keywords
+        seo.canonical_url = canonical_url
+        seo.og_title = og_title
+        seo.og_description = og_description
+        seo.og_image = og_image
+        seo.schema_json = schema_json
+        db.add(seo)
+    else:
+        if any([meta_title, meta_description, meta_keywords, canonical_url, og_title, og_description, og_image, schema_json]):
+            seo = SEOMeta(
+                page_id=page.id,
+                meta_title=meta_title,
+                meta_description=meta_description,
+                meta_keywords=meta_keywords,
+                canonical_url=canonical_url,
+                og_title=og_title,
+                og_description=og_description,
+                og_image=og_image,
+                schema_json=schema_json,
+            )
+            db.add(seo)
+
     db.add(page)
     db.commit()
+    # handle shared sections selection
+    try:
+        selected = form.getlist("shared_section_ids")
+    except Exception:
+        selected = form.get("shared_section_ids")
+    if selected is None:
+        # if nothing selected, clear associations
+        page.shared_sections = []
+        db.add(page)
+        db.commit()
+    else:
+        if isinstance(selected, str):
+            selected = [selected]
+        try:
+            ids = [int(x) for x in selected if x]
+            sections = db.query(SharedSection).filter(SharedSection.id.in_(ids)).all() if ids else []
+            page.shared_sections = sections
+            db.add(page)
+            db.commit()
+        except Exception:
+            pass
     return RedirectResponse(url="/admin/pages", status_code=303)
 
 @router.post("/pages/{page_id}/delete", include_in_schema=False)
