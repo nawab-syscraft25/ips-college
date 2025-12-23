@@ -306,9 +306,21 @@ def delete_media(request: Request, asset_id: int, db: Session = Depends(get_db))
 def list_courses(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    courses = db.query(Course).order_by(Course.id.desc()).all()
-    return templates.TemplateResponse("admin/courses.html", {"request": request, "courses": courses, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Course).order_by(Course.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Course.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    courses = q.all()
+    return templates.TemplateResponse(
+        "admin/courses.html",
+        {"request": request, "courses": courses, "colleges": colleges, "selected_college_id": selected_college_id},
+    )
 
 
 @router.get("/courses/new", include_in_schema=False)
@@ -412,9 +424,18 @@ def delete_course(course_id: int, db: Session = Depends(get_db)):
 def list_faculty(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    faculty = db.query(Faculty).order_by(Faculty.id.desc()).all()
-    return templates.TemplateResponse("admin/faculty.html", {"request": request, "faculty": faculty, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Faculty).order_by(Faculty.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Faculty.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    faculty = q.all()
+    return templates.TemplateResponse("admin/faculty.html", {"request": request, "faculty": faculty, "colleges": colleges, "selected_college_id": selected_college_id})
 
 
 @router.get("/faculty/new", include_in_schema=False)
@@ -489,9 +510,18 @@ def delete_faculty(member_id: int, db: Session = Depends(get_db)):
 def list_placements(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    placements = db.query(Placement).order_by(Placement.id.desc()).all()
-    return templates.TemplateResponse("admin/placements.html", {"request": request, "placements": placements, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Placement).order_by(Placement.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Placement.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    placements = q.all()
+    return templates.TemplateResponse("admin/placements.html", {"request": request, "placements": placements, "colleges": colleges, "selected_college_id": selected_college_id})
 
 
 @router.get("/placements/new", include_in_schema=False)
@@ -562,9 +592,18 @@ def delete_placement(placement_id: int, db: Session = Depends(get_db)):
 def list_activities(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    activities = db.query(Activity).order_by(Activity.id.desc()).all()
-    return templates.TemplateResponse("admin/activities.html", {"request": request, "activities": activities, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Activity).order_by(Activity.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Activity.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    activities = q.all()
+    return templates.TemplateResponse("admin/activities.html", {"request": request, "activities": activities, "colleges": colleges, "selected_college_id": selected_college_id})
 
 
 @router.get("/activities/new", include_in_schema=False)
@@ -637,9 +676,18 @@ def delete_activity(activity_id: int, db: Session = Depends(get_db)):
 def list_facilities(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    facilities = db.query(Facility).order_by(Facility.id.desc()).all()
-    return templates.TemplateResponse("admin/facilities.html", {"request": request, "facilities": facilities, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Facility).order_by(Facility.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Facility.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    facilities = q.all()
+    return templates.TemplateResponse("admin/facilities.html", {"request": request, "facilities": facilities, "colleges": colleges, "selected_college_id": selected_college_id})
 
 
 @router.get("/facilities/new", include_in_schema=False)
@@ -708,9 +756,18 @@ def delete_facility(facility_id: int, db: Session = Depends(get_db)):
 def list_admissions(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    admissions = db.query(Admission).order_by(Admission.id.desc()).all()
-    return templates.TemplateResponse("admin/admissions.html", {"request": request, "admissions": admissions, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Admission).order_by(Admission.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Admission.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    admissions = q.all()
+    return templates.TemplateResponse("admin/admissions.html", {"request": request, "admissions": admissions, "colleges": colleges, "selected_college_id": selected_college_id})
 
 
 @router.get("/admissions/new", include_in_schema=False)
@@ -777,9 +834,18 @@ def delete_admission(admission_id: int, db: Session = Depends(get_db)):
 def list_applications(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    applications = db.query(Application).order_by(Application.id.desc()).all()
-    return templates.TemplateResponse("admin/applications.html", {"request": request, "applications": applications, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Application).order_by(Application.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Application.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    applications = q.all()
+    return templates.TemplateResponse("admin/applications.html", {"request": request, "applications": applications, "colleges": colleges, "selected_college_id": selected_college_id})
 
 
 @router.post("/applications/{app_id}/status", include_in_schema=False)
@@ -803,9 +869,18 @@ async def update_application_status(request: Request, app_id: int, db: Session =
 def list_enquiries(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    colleges = db.query(College).all()
-    enquiries = db.query(Enquiry).order_by(Enquiry.id.desc()).all()
-    return templates.TemplateResponse("admin/enquiries.html", {"request": request, "enquiries": enquiries, "colleges": colleges})
+    colleges = db.query(College).order_by(College.name).all()
+    college_id = request.query_params.get("college_id")
+    q = db.query(Enquiry).order_by(Enquiry.id.desc())
+    selected_college_id = None
+    if college_id:
+        try:
+            selected_college_id = int(college_id)
+            q = q.filter(Enquiry.college_id == selected_college_id)
+        except Exception:
+            selected_college_id = None
+    enquiries = q.all()
+    return templates.TemplateResponse("admin/enquiries.html", {"request": request, "enquiries": enquiries, "colleges": colleges, "selected_college_id": selected_college_id})
 
 @router.get("/colleges", include_in_schema=False)
 def list_colleges(request: Request, db: Session = Depends(get_db)):
@@ -818,7 +893,13 @@ def list_colleges(request: Request, db: Session = Depends(get_db)):
 def new_college_form(request: Request):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    return templates.TemplateResponse("admin/college_form.html", {"request": request, "action": "create", "college": None})
+    # pass list of existing colleges so admin can choose a parent
+    # import db lazily to avoid changing signature
+    from app.core.database import SessionLocal
+    db = SessionLocal()
+    colleges = db.query(College).order_by(College.name).all()
+    db.close()
+    return templates.TemplateResponse("admin/college_form.html", {"request": request, "action": "create", "college": None, "colleges": colleges})
 
 @router.post("/colleges/new", include_in_schema=False)
 async def create_college(request: Request, db: Session = Depends(get_db)):
@@ -833,6 +914,15 @@ async def create_college(request: Request, db: Session = Depends(get_db)):
     theme_secondary_color = form.get("theme_secondary_color")
     is_active = bool(form.get("is_active"))
 
+    parent_id = form.get("parent_id") or None
+    if parent_id == "":
+        parent_id = None
+    else:
+        try:
+            parent_id = int(parent_id)
+        except Exception:
+            parent_id = None
+
     college = College(
         name=name,
         slug=slug,
@@ -841,6 +931,7 @@ async def create_college(request: Request, db: Session = Depends(get_db)):
         theme_primary_color=theme_primary_color,
         theme_secondary_color=theme_secondary_color,
         is_active=is_active,
+        parent_id=parent_id,
     )
     db.add(college)
     db.commit()
@@ -852,7 +943,9 @@ def edit_college_form(request: Request, college_id: int, db: Session = Depends(g
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     college = db.query(College).filter(College.id == college_id).first()
-    return templates.TemplateResponse("admin/college_form.html", {"request": request, "action": "edit", "college": college})
+    # provide list of possible parents (exclude self)
+    colleges = db.query(College).filter(College.id != college_id).order_by(College.name).all()
+    return templates.TemplateResponse("admin/college_form.html", {"request": request, "action": "edit", "college": college, "colleges": colleges})
 
 @router.post("/colleges/{college_id}/edit", include_in_schema=False)
 async def update_college(request: Request, college_id: int, db: Session = Depends(get_db)):
@@ -869,6 +962,18 @@ async def update_college(request: Request, college_id: int, db: Session = Depend
     college.theme_primary_color = form.get("theme_primary_color")
     college.theme_secondary_color = form.get("theme_secondary_color")
     college.is_active = bool(form.get("is_active"))
+    parent_id = form.get("parent_id") or None
+    if parent_id == "":
+        parent_id = None
+    else:
+        try:
+            parent_id = int(parent_id)
+        except Exception:
+            parent_id = None
+    # Prevent setting the college as its own parent
+    if parent_id == college.id:
+        parent_id = None
+    college.parent_id = parent_id
     db.add(college)
     db.commit()
     return RedirectResponse(url="/admin/colleges", status_code=303)

@@ -19,6 +19,18 @@
         <div class="form-text">Used by subdomain-based routing (e.g. ibmr.ipsacademy.org).</div>
       </div>
       <div class="mb-3">
+        <label class="form-label">Parent College</label>
+        <select name="parent_id" class="form-select">
+          <option value="">(No parent)</option>
+          {% for pc in colleges %}
+            {% if not college or pc.id != college.id %}
+            <option value="{{ pc.id }}" {% if college and college.parent_id == pc.id %}selected{% endif %}>{{ pc.name }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <div class="form-text">Select a parent institution to create a child institute/site.</div>
+      </div>
+      <div class="mb-3">
         <label class="form-label">Short description</label>
         <textarea name="short_description" class="form-control" rows="3">{{ college.short_description if college else '' }}</textarea>
       </div>
