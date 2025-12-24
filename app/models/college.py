@@ -1,5 +1,6 @@
 from sqlalchemy import Integer, String, Boolean, DateTime, Text, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List
 from app.core.database import Base
 
 
@@ -21,7 +22,7 @@ class College(Base):
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     parent: Mapped["College"] = relationship("College", remote_side=[id], back_populates="children")
-    children: Mapped[list["College"]] = relationship("College", back_populates="parent", cascade="all, delete-orphan")
+    children: Mapped[List["College"]] = relationship("College", back_populates="parent", cascade="all, delete-orphan")
 
     pages = relationship("Page", back_populates="college", cascade="all, delete-orphan")
     courses = relationship("Course", back_populates="college", cascade="all, delete-orphan")
