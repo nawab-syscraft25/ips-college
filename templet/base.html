@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="/static/styles.css">
     <style>
       :root {
-        --primary: #2563eb;
-        --primary-dark: #1e40af;
+        --primary: #003d7a;
+        --primary-dark: #002244;
         --success: #10b981;
         --warning: #f59e0b;
         --danger: #ef4444;
@@ -99,6 +99,7 @@
         overflow-y: auto;
         z-index: 1000;
         margin-top: 60px;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.1);
       }
       
       .sidebar::-webkit-scrollbar {
@@ -115,7 +116,7 @@
       }
       
       .sidebar::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        background: rgba(255,255,255,0.5);
       }
       
       .sidebar-menu {
@@ -133,7 +134,7 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem 1.5rem;
-        color: #d1d5db;
+        color: rgba(255,255,255,0.8);
         text-decoration: none;
         transition: all 0.2s;
         border-left: 3px solid transparent;
@@ -141,22 +142,22 @@
       }
       
       .sidebar-menu a:hover {
-        background-color: rgba(255,255,255,0.1);
+        background-color: rgba(255,255,255,0.15);
         color: white;
-        border-left-color: var(--primary);
+        border-left-color: rgba(255,255,255,0.8);
       }
       
       .sidebar-menu a.active {
-        background-color: rgba(37, 99, 235, 0.2);
+        background-color: rgba(255,255,255,0.2);
         color: white;
-        border-left-color: var(--primary);
+        border-left-color: white;
       }
       
       .sidebar-section {
         padding: 1rem 1.5rem 0.5rem;
         font-size: 0.75rem;
         font-weight: 600;
-        color: #9ca3af;
+        color: rgba(255,255,255,0.6);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-top: 1rem;
