@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .seo-container {
+    max-width: 900px;
+  }
+  
+  .seo-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .seo-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  
+  .seo-card-header i {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+  
+  .seo-card-header h3 {
+    margin: 0;
+    color: var(--dark);
+    font-size: 1.125rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    display: block;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .hint-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+  
+  .seo-score {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .score-box {
+    text-align: center;
+    padding: 1rem;
+    background: var(--light);
+    border-radius: 0.5rem;
+    border: 2px solid #e5e7eb;
+  }
+  
+  .score-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin: 0.5rem 0;
+  }
+  
+  .score-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  
+  .preview-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .preview-title {
+    color: var(--primary);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    word-break: break-all;
+  }
+  
+  .preview-url {
+    color: #065f46;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .preview-description {
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .keyword-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .keyword-tag {
+    background: #dbeafe;
+    color: var(--primary);
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .keyword-tag button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0;
+  }
+  
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--light);
+    border-radius: 0.375rem;
+  }
+  
+  .checklist-item.done {
+    background: #dcfce7;
+  }
+  
+  .checklist-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    font-size: 0.75rem;
+    margin-top: 0.125rem;
+  }
+  
+  .checklist-item.done .checklist-icon {
+    background: var(--success);
+  }
+  
+  .checklist-item:not(.done) .checklist-icon {
+    background: #fbbf24;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e5e7eb;
+  }
+  
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-dark);
+  }
+  
+  .btn-secondary {
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: var(--dark);
+  }
+  
+  .btn-secondary:hover {
+    background: var(--light);
+  }
+</style>
+
+<div class="seo-container">
+  <!-- SEO Scores -->
+  <div class="seo-card">
+    <div class="seo-card-header">
+      <i class="fas fa-chart-pie"></i>
+      <h3>SEO Score Overview</h3>
+    </div>
+    <div class="seo-score">
+      <div class="score-box">
+        <div class="score-label">Overall Score</div>
+        <div class="score-value">{{ page.seo_meta.seo_score if page and page.seo_meta else 0 }}/100</div>
+      </div>
+      <div class="score-box">
+        <div class="score-label">Readability</div>
+        <div class="score-value">{{ page.seo_meta.readability_score if page and page.seo_meta else 0 }}/100</div>
+      </div>
+      <div class="score-box">
+        <div class="score-label">Keywords</div>
+        <div class="score-value">{{ 1 if page and page.seo_meta and page.seo_meta.focus_keyword else 0 }}/1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meta Information -->
+  <div class="seo-card">
+    <div class="seo-card-header">
+      <i class="fas fa-file-alt"></i>
+      <h3>Meta Information</h3>
+    </div>
+    
+    <form id="seoForm">
+      <!-- Meta Title -->
+      <div class="form-group">
+        <label class="form-label">Meta Title (Title Tag) *</label>
+        <input type="text" class="form-control" id="metaTitle" maxlength="60" 
+               value="{{ page.seo_meta.meta_title if page and page.seo_meta else page.title if page else '' }}"
+               placeholder="Keep it under 60 characters">
+        <div class="hint-text">
+          <span id="titleCount">{{ page.seo_meta.meta_title|length if page and page.seo_meta else 0 }}</span>/60 characters
+          <span id="titleStatus" style="margin-left: 1rem; color: #6b7280;">Good length</span>
+        </div>
+      </div>
+
+      <!-- Meta Description -->
+      <div class="form-group">
+        <label class="form-label">Meta Description *</label>
+        <textarea class="form-control" id="metaDescription" maxlength="160" 
+                  placeholder="Describe your page in 150-160 characters">{{ page.seo_meta.meta_description if page and page.seo_meta else '' }}</textarea>
+        <div class="hint-text">
+          <span id="descCount">{{ page.seo_meta.meta_description|length if page and page.seo_meta else 0 }}</span>/160 characters
+          <span id="descStatus" style="margin-left: 1rem; color: #6b7280;">Good length</span>
+        </div>
+      </div>
+
+      <!-- Focus Keyword -->
+      <div class="form-group">
+        <label class="form-label">Focus Keyword *</label>
+        <input type="text" class="form-control" id="focusKeyword" 
+               value="{{ page.seo_meta.focus_keyword if page and page.seo_meta else '' }}"
+               placeholder="e.g., best engineering college in Delhi">
+        <div class="hint-text">Enter 1-3 words you want to rank for</div>
+      </div>
+
+      <!-- Keywords -->
+      <div class="form-group">
+        <label class="form-label">Keywords (Tags)</label>
+        <input type="text" class="form-control" id="keywordsInput" 
+               placeholder="Type and press Enter to add keywords">
+        <div class="keyword-tags" id="keywordsList" style="margin-top: 1rem;">
+          {% if page and page.seo_meta and page.seo_meta.keywords %}
+            {% for keyword in page.seo_meta.keywords.split(',') %}
+            <div class="keyword-tag">
+              {{ keyword.strip() }}
+              <button type="button" onclick="removeKeyword(this)">×</button>
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- URL Slug -->
+      <div class="form-group">
+        <label class="form-label">Page URL Slug</label>
+        <input type="text" class="form-control" id="urlSlug" 
+               value="{{ page.slug if page else '' }}"
+               placeholder="auto-generated-page-slug">
+        <div class="hint-text">Automatically generated from title</div>
+      </div>
+
+      <!-- Canonical URL -->
+      <div class="form-group">
+        <label class="form-label">Canonical URL</label>
+        <input type="url" class="form-control" id="canonicalUrl" 
+               value="{{ page.seo_meta.canonical_url if page and page.seo_meta else '' }}"
+               placeholder="https://yourdomain.com/page">
+        <div class="hint-text">Leave blank to auto-generate</div>
+      </div>
+
+      <!-- Open Graph -->
+      <div style="padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+        <h4 style="font-weight: 600; color: var(--dark); margin-bottom: 1rem;">Social Media (Open Graph)</h4>
+        
+        <div class="form-group">
+          <label class="form-label">OG Title</label>
+          <input type="text" class="form-control" id="ogTitle" maxlength="50"
+                 value="{{ page.seo_meta.og_title if page and page.seo_meta else '' }}"
+                 placeholder="Title for social sharing">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">OG Description</label>
+          <textarea class="form-control" id="ogDescription" maxlength="160"
+                    placeholder="Description for social sharing"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">OG Image URL</label>
+          <input type="url" class="form-control" id="ogImage" 
+                 placeholder="https://yourdomain.com/image.jpg">
+        </div>
+      </div>
+
+      <!-- Search Console -->
+      <div style="padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+        <h4 style="font-weight: 600; color: var(--dark); margin-bottom: 1rem;">Indexing</h4>
+        
+        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+          <input type="checkbox" id="indexable" {{ 'checked' if not page or page.seo_meta and not page.seo_meta.no_index else '' }}>
+          <span>Allow search engines to index this page</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-top: 0.75rem;">
+          <input type="checkbox" id="followLinks" {{ 'checked' if not page or page.seo_meta and not page.seo_meta.no_follow else '' }}>
+          <span>Allow search engines to follow links on this page</span>
+        </label>
+      </div>
+    </form>
+  </div>
+
+  <!-- Preview -->
+  <div class="seo-card">
+    <div class="seo-card-header">
+      <i class="fas fa-eye"></i>
+      <h3>Search Preview</h3>
+    </div>
+    
+    <div class="preview-box">
+      <div class="preview-title" id="previewTitle">{{ page.seo_meta.meta_title if page and page.seo_meta else page.title if page else 'Your Page Title' }}</div>
+      <div class="preview-url">{{ domain if domain else 'ipsacademy.edu.in' }}/{{ page.slug if page else 'your-page' }}</div>
+      <div class="preview-description" id="previewDesc">{{ page.seo_meta.meta_description if page and page.seo_meta else 'Your meta description appears here' }}</div>
+    </div>
+  </div>
+
+  <!-- SEO Checklist -->
+  <div class="seo-card">
+    <div class="seo-card-header">
+      <i class="fas fa-check-circle"></i>
+      <h3>SEO Checklist</h3>
+    </div>
+    
+    <div id="seoChecklist">
+      <div class="checklist-item" id="check-title">
+        <div class="checklist-icon">!</div>
+        <div>
+          <strong>Meta Title Set</strong>
+          <div style="font-size: 0.75rem; color: #6b7280;">Add a title to appear in search results</div>
+        </div>
+      </div>
+      
+      <div class="checklist-item" id="check-description">
+        <div class="checklist-icon">!</div>
+        <div>
+          <strong>Meta Description Set</strong>
+          <div style="font-size: 0.75rem; color: #6b7280;">Add a description (150-160 chars)</div>
+        </div>
+      </div>
+      
+      <div class="checklist-item" id="check-keyword">
+        <div class="checklist-icon">!</div>
+        <div>
+          <strong>Focus Keyword Added</strong>
+          <div style="font-size: 0.75rem; color: #6b7280;">Set a focus keyword for this page</div>
+        </div>
+      </div>
+      
+      <div class="checklist-item done" id="check-mobile">
+        <div class="checklist-icon">✓</div>
+        <div>
+          <strong>Mobile Optimized</strong>
+          <div style="font-size: 0.75rem; color: #6b7280;">This page is mobile-friendly</div>
+        </div>
+      </div>
+      
+      <div class="checklist-item" id="check-speed">
+        <div class="checklist-icon">!</div>
+        <div>
+          <strong>Page Speed Good</strong>
+          <div style="font-size: 0.75rem; color: #6b7280;">Check Core Web Vitals performance</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <a href="/admin/pages?college_id={{ selected_college_id }}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Back to Pages
+    </a>
+    <button class="btn btn-primary" onclick="saveSEO()">
+      <i class="fas fa-save"></i> Save SEO Settings
+    </button>
+  </div>
+</div>
+
+<script>
+  // Character counters
+  document.getElementById('metaTitle')?.addEventListener('input', function() {
+    document.getElementById('titleCount').textContent = this.value.length;
+    document.getElementById('check-title').classList.toggle('done', this.value.length > 0);
+    updatePreview();
+  });
+  
+  document.getElementById('metaDescription')?.addEventListener('input', function() {
+    document.getElementById('descCount').textContent = this.value.length;
+    document.getElementById('check-description').classList.toggle('done', this.value.length > 0);
+    updatePreview();
+  });
+  
+  document.getElementById('focusKeyword')?.addEventListener('input', function() {
+    document.getElementById('check-keyword').classList.toggle('done', this.value.length > 0);
+  });
+  
+  // Add keywords on Enter
+  document.getElementById('keywordsInput')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const keyword = this.value.trim();
+      if (keyword) {
+        const tag = document.createElement('div');
+        tag.className = 'keyword-tag';
+        tag.innerHTML = `${keyword}<button type="button" onclick="removeKeyword(this)">×</button>`;
+        document.getElementById('keywordsList').appendChild(tag);
+        this.value = '';
+      }
+    }
+  });
+  
+  function removeKeyword(btn) {
+    btn.parentElement.remove();
+  }
+  
+  function updatePreview() {
+    document.getElementById('previewTitle').textContent = 
+      document.getElementById('metaTitle').value || 'Your Page Title';
+    document.getElementById('previewDesc').textContent = 
+      document.getElementById('metaDescription').value || 'Your meta description appears here';
+  }
+  
+  function saveSEO() {
+    alert('SEO settings saved!\n\nAPI integration needed in routes');
+  }
+  
+  // Initialize checklist
+  updatePreview();
+</script>
+{% endblock %}

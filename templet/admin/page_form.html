@@ -1,97 +1,417 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1 class="mb-4">{{ 'Edit' if action == 'edit' else 'Create' }} Page</h1>
-{% if action == 'edit' and page %}
-  <div class="mb-3">
-    <a href="/admin/pages/{{ page.id }}/sections" class="btn btn-secondary">Manage Sections</a>
+<style>
+  .form-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .form-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    display: block;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  .hint-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .form-row.full {
+    grid-template-columns: 1fr;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e5e7eb;
+  }
+  
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.875rem;
+  }
+  
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-dark);
+  }
+  
+  .btn-secondary {
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: var(--dark);
+  }
+  
+  .btn-secondary:hover {
+    background: var(--light);
+  }
+  
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+  
+  .btn-danger:hover {
+    background: #dc2626;
+  }
+  
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--light);
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  
+  .checkbox-group label {
+    cursor: pointer;
+    margin: 0;
+    font-weight: normal;
+  }
+  
+  .page-status {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .status-published {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .status-draft {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  @media (max-width: 768px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+    
+    .button-group {
+      flex-direction: column;
+    }
+    
+    .btn {
+      width: 100%;
+    }
+    
+    .quick-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="form-container">
+  <!-- Page Header -->
+  <div class="form-card">
+    <h2 class="form-section-title">
+      {% if action == 'edit' and page %}
+      ✏️ Edit Page: {{ page.title }}
+      {% else %}
+      ➕ Create New Page
+      {% endif %}
+    </h2>
+    
+    {% if action == 'edit' and page %}
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <span class="page-status {% if page.is_published %}status-published{% else %}status-draft{% endif %}">
+          {{ 'Published' if page.is_published else 'Draft' }}
+        </span>
+        <small style="color: #6b7280; margin-left: 1rem;">
+          Created: {{ page.created_at.strftime('%B %d, %Y') if page.created_at else 'N/A' }}
+        </small>
+      </div>
+      <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" class="btn btn-primary">
+        🎨 Go to Designer
+      </a>
+    </div>
+    {% endif %}
   </div>
-{% endif %}
 
-<form method="post" action="{% if action == 'edit' %}/admin/pages/{{ page.id }}/edit{% else %}/admin/pages/new{% endif %}">
-  <div class="row">
-    <div class="col-md-8">
-      <div class="mb-3">
-        <label class="form-label">Title</label>
-        <input name="title" class="form-control" value="{{ page.title if page else '' }}" required>
+  <!-- Basic Information -->
+  <form method="post" action="{% if action == 'edit' %}/admin/pages/{{ page.id }}/edit{% else %}/admin/pages/new{% endif %}?college_id={{ selected_college_id }}">
+    <div class="form-card">
+      <h3 class="form-section-title">📄 Page Information</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Page Title *</label>
+          <input type="text" class="form-control" name="title" required 
+                 value="{{ page.title if page else '' }}"
+                 placeholder="e.g., About Our College">
+          <div class="hint-text">Main heading for this page</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">College *</label>
+          <select name="college_id" class="form-control" required>
+            <option value="">-- Select College --</option>
+            {% for c in colleges %}
+            <option value="{{ c.id }}" {% if page and page.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+          <div class="hint-text">Which college this page belongs to</div>
+        </div>
       </div>
-      <div class="mb-3">
-        <label class="form-label">Slug</label>
-        <input name="slug" class="form-control" value="{{ page.slug if page else '' }}" required>
-        <div class="form-text">Used in URLs (e.g. /&lt;college&gt;/{{ page.slug if page else 'about' }}).</div>
+      
+      <div class="form-group">
+        <label class="form-label">URL Slug</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" class="form-control" name="slug" 
+                 value="{{ page.slug if page else '' }}"
+                 placeholder="auto-generated-slug">
+          <span style="display: flex; align-items: center; color: #6b7280; font-size: 0.875rem; white-space: nowrap;">
+            /{{ page.slug if page else 'page-slug' }}
+          </span>
+        </div>
+        <div class="hint-text">Used in URLs (auto-generated if blank)</div>
       </div>
     </div>
 
-    <div class="col-md-4">
-      <div class="mb-3">
-        <label class="form-label">College</label>
-        <select name="college_id" class="form-select">
-          <option value="">— None (global page) —</option>
-          {% for c in colleges %}
-          <option value="{{ c.id }}" {% if page and page.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
-          {% endfor %}
-        </select>
+    <!-- Publishing Options -->
+    <div class="form-card">
+      <h3 class="form-section-title">📢 Publishing Options</h3>
+      
+      <div class="checkbox-group">
+        <input type="checkbox" id="isPublished" name="is_published" value="on"
+               {% if page and page.is_published %}checked{% endif %}>
+        <label for="isPublished"><strong>Publish this page</strong> (make it live on website)</label>
       </div>
+      
+      {% if action == 'edit' and page %}
+      <div class="checkbox-group">
+        <input type="checkbox" id="isInheritable" name="is_inheritable" value="on"
+               {% if page.is_inheritable %}checked{% endif %}>
+        <label for="isInheritable"><strong>Allow child colleges</strong> to inherit this page</label>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Shared Sections -->
+    {% if shared_sections %}
+    <div class="form-card">
+      <h3 class="form-section-title">🎨 Shared Sections</h3>
+      <p style="color: #6b7280; margin-bottom: 1rem;">Attach reusable sections to this page:</p>
+      
+      <div style="display: grid; gap: 0.5rem;">
+        {% for s in shared_sections %}
+        <div class="checkbox-group">
+          <input type="checkbox" name="shared_section_ids" value="{{ s.id }}" 
+                 id="shared_section_{{ s.id }}" {% if page and s in page.shared_sections %}checked{% endif %}>
+          <label for="shared_section_{{ s.id }}">
+            {{ s.section_title or s.section_type }} 
+            {% if not s.is_active %}<span style="color: #6b7280;">(inactive)</span>{% endif %}
+          </label>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- SEO Settings -->
+    <div class="form-card">
+      <h3 class="form-section-title">🔍 SEO & Open Graph</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Meta Title</label>
+          <input type="text" name="meta_title" class="form-control" maxlength="60"
+                 value="{{ page.seo.meta_title if page and page.seo else '' }}"
+                 placeholder="Search result title (max 60 chars)">
+          <div class="hint-text">Appears in search results and browser tab</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Meta Keywords</label>
+          <input type="text" name="meta_keywords" class="form-control"
+                 value="{{ page.seo.meta_keywords if page and page.seo else '' }}"
+                 placeholder="keyword1, keyword2, keyword3">
+          <div class="hint-text">Comma-separated keywords</div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Meta Description</label>
+        <textarea name="meta_description" class="form-control" maxlength="160"
+                  placeholder="Search result description (max 160 chars)">{{ page.seo.meta_description if page and page.seo else '' }}</textarea>
+        <div class="hint-text">What appears under the title in search results</div>
+      </div>
+      
+      <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e5e7eb;">
+      
+      <h4 style="font-weight: 600; color: var(--dark); margin-bottom: 1rem; font-size: 0.95rem;">
+        Social Media (Open Graph)
+      </h4>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">OG Title</label>
+          <input type="text" name="og_title" class="form-control"
+                 value="{{ page.seo.og_title if page and page.seo else '' }}"
+                 placeholder="How it appears when shared">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">OG Image URL</label>
+          <input type="url" name="og_image" class="form-control"
+                 value="{{ page.seo.og_image if page and page.seo else '' }}"
+                 placeholder="https://example.com/image.jpg">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">OG Description</label>
+        <textarea name="og_description" class="form-control"
+                  placeholder="Social media preview text">{{ page.seo.og_description if page and page.seo else '' }}</textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Canonical URL</label>
+        <input type="url" name="canonical_url" class="form-control"
+               value="{{ page.seo.canonical_url if page and page.seo else '' }}"
+               placeholder="https://example.com/page">
+        <div class="hint-text">Prevent duplicate content issues</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Schema JSON (Raw)</label>
+        <textarea name="schema_json" class="form-control" style="font-family: monospace; font-size: 0.8rem;"
+                  placeholder='{"@context": "https://schema.org", ...}'>{{ page.seo.schema_json if page and page.seo else '' }}</textarea>
+        <div class="hint-text">Advanced: Structured data for search engines</div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="form-card">
+      <div class="button-group">
+        <a href="/admin/pages?college_id={{ selected_college_id }}" class="btn btn-secondary">
+          ← Back to Pages
+        </a>
+        
+        {% if action == 'edit' and page %}
+        <button type="submit" name="action" value="delete" class="btn btn-danger" 
+                onclick="return confirm('Delete this page? This cannot be undone.');">
+          🗑️ Delete Page
+        </button>
+        {% endif %}
+        
+        <button type="submit" class="btn btn-primary">
+          {% if action == 'edit' and page %}
+          💾 Save Changes
+          {% else %}
+          ✚ Create Page
+          {% endif %}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Quick Links for Existing Pages -->
+  {% if action == 'edit' and page %}
+  <div class="form-card">
+    <h3 class="form-section-title">⚡ Quick Actions</h3>
+    <div class="quick-actions">
+      <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" 
+         class="btn btn-primary" style="text-align: center;">
+        🎨 Design Page
+      </a>
+      <a href="/admin/page/{{ page.id }}/seo?college_id={{ selected_college_id }}" 
+         class="btn btn-primary" style="text-align: center;">
+        🔍 SEO Panel
+      </a>
+      <a href="/pages/{{ page.slug }}" target="_blank" 
+         class="btn btn-secondary" style="text-align: center;">
+        👁️ Preview Page
+      </a>
     </div>
   </div>
-  </div>
-
-  <hr>
-  <h5 class="mb-3 px-3">Shared Sections</h5>
-  <div class="mb-3 px-3">
-    <div class="form-text mb-2">Attach reusable sections to this page (order can be managed when rendering).</div>
-    {% for s in shared_sections %}
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" name="shared_section_ids" value="{{ s.id }}" id="shared_section_{{ s.id }}" {% if page and s in page.shared_sections %}checked{% endif %}>
-      <label class="form-check-label" for="shared_section_{{ s.id }}">{{ s.section_title or s.section_type }} {% if not s.is_active %}(inactive){% endif %}</label>
-    </div>
-    {% else %}
-    <div class="text-muted">No shared sections available. Create them under CMS → Shared Sections.</div>
-    {% endfor %}
-
-  <hr>
-
-  <h5>SEO / Open Graph</h5>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label class="form-label">Meta title</label>
-          <input name="meta_title" class="form-control" value="{{ page.seo.meta_title if page and page.seo else '' }}">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Meta description</label>
-          <textarea name="meta_description" class="form-control" rows="2">{{ page.seo.meta_description if page and page.seo else '' }}</textarea>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Meta keywords</label>
-          <input name="meta_keywords" class="form-control" value="{{ page.seo.meta_keywords if page and page.seo else '' }}">
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label class="form-label">Canonical URL</label>
-          <input name="canonical_url" class="form-control" value="{{ page.seo.canonical_url if page and page.seo else '' }}">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">OG title</label>
-          <input name="og_title" class="form-control" value="{{ page.seo.og_title if page and page.seo else '' }}">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">OG description</label>
-          <textarea name="og_description" class="form-control" rows="2">{{ page.seo.og_description if page and page.seo else '' }}</textarea>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">OG image URL</label>
-          <input name="og_image" class="form-control" value="{{ page.seo.og_image if page and page.seo else '' }}">
-        </div>
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Schema JSON (raw)</label>
-      <textarea name="schema_json" class="form-control" rows="4">{{ page.seo.schema_json if page and page.seo else '' }}</textarea>
-    </div>
-
-  <button type="submit" class="btn btn-primary">Save</button>
-  <a href="/admin/pages" class="btn btn-link">Cancel</a>
-</form>
+  {% endif %}
+</div>
 {% endblock %}

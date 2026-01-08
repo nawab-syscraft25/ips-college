@@ -17,10 +17,11 @@ app = FastAPI(title=settings.APP_NAME)
 # Mount static files for admin templates
 app.mount("/static", StaticFiles(directory="templet/static"), name="static")
 
-# Session middleware for simple admin login
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
-
+# Middleware order matters: added first = executed last
+# We need SessionMiddleware to execute FIRST (innermost)
+# So add CollegeResolverMiddleware first, then SessionMiddleware
 app.add_middleware(CollegeResolverMiddleware)
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.include_router(api_router, prefix="/api/v1")
 
 # Also expose the server-rendered admin UI at the root `/admin` path so
@@ -42,4 +43,4 @@ if __name__ == "__main__":
     # Use: python -m app.main  (or `python app/main.py`) to start server on port 6666
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=6666)
+    uvicorn.run(app, host="0.0.0.0", port=7777)

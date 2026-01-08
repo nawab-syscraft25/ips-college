@@ -14,9 +14,17 @@ class CollegeResolverMiddleware(BaseHTTPMiddleware):
         # Get college_id from query params or session
         college_id = request.query_params.get("college_id")
         if college_id:
-            request.session["selected_college_id"] = int(college_id)
+            try:
+                request.session["selected_college_id"] = int(college_id)
+            except RuntimeError:
+                # Session not available yet (might be during non-admin request)
+                pass
         else:
-            college_id = request.session.get("selected_college_id")
+            # Try to get from session
+            try:
+                college_id = request.session.get("selected_college_id")
+            except RuntimeError:
+                college_id = None
 
         # Subdomain-based college resolution (for frontend)
         if subdomain not in ["www", "ipsacademy", "localhost"]:
@@ -36,3 +44,4 @@ class CollegeResolverMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         db.close()
         return response
+

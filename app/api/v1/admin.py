@@ -1165,8 +1165,31 @@ def delete_college(college_id: int, db: Session = Depends(get_db)):
 def list_pages(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
-    pages = db.query(Page).order_by(Page.id.desc()).all()
-    return templates.TemplateResponse("admin/pages.html", {"request": request, "pages": pages})
+    
+    # Get college context
+    college_id = request.query_params.get("college_id")
+    selected_college = None
+    if college_id:
+        selected_college = db.query(College).filter(College.id == int(college_id)).first()
+    
+    # Filter pages by college if specified
+    if college_id:
+        pages = db.query(Page).filter(Page.college_id == int(college_id)).order_by(Page.id.desc()).all()
+    else:
+        pages = db.query(Page).order_by(Page.id.desc()).all()
+    
+    colleges = db.query(College).order_by(College.name).all()
+    
+    return templates.TemplateResponse(
+        "admin/pages_list.html", 
+        {
+            "request": request, 
+            "pages": pages,
+            "colleges": colleges,
+            "selected_college": selected_college,
+            "selected_college_id": college_id or ""
+        }
+    )
 
 
 # -------------------
@@ -1334,11 +1357,21 @@ def delete_section_item(request: Request, page_id: int, section_id: int, item_id
 def new_page_form(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
+    
+    college_id = request.query_params.get("college_id")
     colleges = db.query(College).order_by(College.name).all()
     shared_sections = db.query(SharedSection).order_by(SharedSection.sort_order).all()
+    
     return templates.TemplateResponse(
         "admin/page_form.html",
-        {"request": request, "action": "create", "page": None, "colleges": colleges, "shared_sections": shared_sections},
+        {
+            "request": request, 
+            "action": "create", 
+            "page": None, 
+            "colleges": colleges, 
+            "shared_sections": shared_sections,
+            "selected_college_id": college_id or ""
+        },
     )
 
 @router.post("/pages/new", include_in_schema=False)
@@ -1346,10 +1379,21 @@ async def create_page(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     form = await request.form()
+    college_id = request.query_params.get("college_id")
+    
     title = form.get("title")
     slug = form.get("slug")
-    college_id = form.get("college_id") or None
-    page = Page(title=title, slug=slug, college_id=int(college_id) if college_id else None)
+    college_id_form = form.get("college_id") or None
+    is_published = bool(form.get("is_published"))
+    is_inheritable = bool(form.get("is_inheritable"))
+    
+    page = Page(
+        title=title, 
+        slug=slug, 
+        college_id=int(college_id_form) if college_id_form else None,
+        is_published=is_published,
+        is_inheritable=is_inheritable
+    )
     db.add(page)
     db.commit()
     db.refresh(page)
@@ -1395,18 +1439,30 @@ async def create_page(request: Request, db: Session = Depends(get_db)):
         )
         db.add(seo)
         db.commit()
-    return RedirectResponse(url="/admin/pages", status_code=303)
+    
+    redirect_url = f"/admin/pages?college_id={college_id}" if college_id else "/admin/pages"
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 @router.get("/pages/{page_id}/edit", include_in_schema=False)
 def edit_page_form(request: Request, page_id: int, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
+    
+    college_id = request.query_params.get("college_id")
     page = db.query(Page).filter(Page.id == page_id).first()
     colleges = db.query(College).order_by(College.name).all()
     shared_sections = db.query(SharedSection).order_by(SharedSection.sort_order).all()
+    
     return templates.TemplateResponse(
         "admin/page_form.html",
-        {"request": request, "action": "edit", "page": page, "colleges": colleges, "shared_sections": shared_sections},
+        {
+            "request": request, 
+            "action": "edit", 
+            "page": page, 
+            "colleges": colleges, 
+            "shared_sections": shared_sections,
+            "selected_college_id": college_id or ""
+        },
     )
 
 @router.post("/pages/{page_id}/edit", include_in_schema=False)
@@ -1414,13 +1470,19 @@ async def update_page(request: Request, page_id: int, db: Session = Depends(get_
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     form = await request.form()
+    college_id = request.query_params.get("college_id")
+    
     page = db.query(Page).filter(Page.id == page_id).first()
     if not page:
-        return RedirectResponse(url="/admin/pages", status_code=303)
+        redirect_url = f"/admin/pages?college_id={college_id}" if college_id else "/admin/pages"
+        return RedirectResponse(url=redirect_url, status_code=303)
+    
     page.title = form.get("title")
     page.slug = form.get("slug")
-    college_id = form.get("college_id") or None
-    page.college_id = int(college_id) if college_id else None
+    college_id_form = form.get("college_id") or None
+    page.college_id = int(college_id_form) if college_id_form else None
+    page.is_published = bool(form.get("is_published"))
+    page.is_inheritable = bool(form.get("is_inheritable"))
 
     # update or create SEO meta
     meta_title = form.get("meta_title") or None
@@ -1481,16 +1543,114 @@ async def update_page(request: Request, page_id: int, db: Session = Depends(get_
             db.commit()
         except Exception:
             pass
-    return RedirectResponse(url="/admin/pages", status_code=303)
+    
+    redirect_url = f"/admin/pages?college_id={college_id}" if college_id else "/admin/pages"
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 @router.post("/pages/{page_id}/delete", include_in_schema=False)
-def delete_page(page_id: int, db: Session = Depends(get_db)):
-    # For simplicity this route is not protected by session check here; rely on frontend
+def delete_page(request: Request, page_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
     page = db.query(Page).filter(Page.id == page_id).first()
+    college_id = request.query_params.get("college_id")
     if page:
         db.delete(page)
         db.commit()
-    return RedirectResponse(url="/admin/pages", status_code=303)
+    redirect_url = f"/admin/pages?college_id={college_id}" if college_id else "/admin/pages"
+    return RedirectResponse(url=redirect_url, status_code=303)
+
+
+# ===== NEW MODERN UI ROUTES =====
+
+@router.get("/page/{page_id}/design", include_in_schema=False)
+def page_designer(request: Request, page_id: int, db: Session = Depends(get_db)):
+    """WordPress-like page designer with drag-drop sections"""
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    
+    college_id = request.query_params.get("college_id")
+    page = db.query(Page).filter(Page.id == page_id).first()
+    if not page:
+        return RedirectResponse(url="/admin/pages", status_code=303)
+    
+    sections = db.query(PageSection).filter(PageSection.page_id == page_id).order_by(PageSection.sort_order).all()
+    
+    return templates.TemplateResponse(
+        "admin/page_builder.html",
+        {
+            "request": request,
+            "page": page,
+            "sections": sections,
+            "selected_college_id": college_id or ""
+        }
+    )
+
+
+@router.get("/page/{page_id}/seo", include_in_schema=False)
+def page_seo_editor(request: Request, page_id: int, db: Session = Depends(get_db)):
+    """Professional SEO optimization panel"""
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    
+    college_id = request.query_params.get("college_id")
+    page = db.query(Page).filter(Page.id == page_id).first()
+    if not page:
+        return RedirectResponse(url="/admin/pages", status_code=303)
+    
+    seo = db.query(SEOMeta).filter(SEOMeta.page_id == page_id).first()
+    
+    return templates.TemplateResponse(
+        "admin/page_seo.html",
+        {
+            "request": request,
+            "page": page,
+            "seo": seo,
+            "selected_college_id": college_id or ""
+        }
+    )
+
+
+@router.post("/page/{page_id}/seo", include_in_schema=False)
+async def update_page_seo(request: Request, page_id: int, db: Session = Depends(get_db)):
+    """Save SEO settings"""
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    
+    form = await request.form()
+    college_id = request.query_params.get("college_id")
+    page = db.query(Page).filter(Page.id == page_id).first()
+    if not page:
+        return RedirectResponse(url="/admin/pages", status_code=303)
+    
+    # Update SEO meta
+    seo = db.query(SEOMeta).filter(SEOMeta.page_id == page_id).first()
+    if seo:
+        seo.meta_title = form.get("meta_title") or None
+        seo.meta_description = form.get("meta_description") or None
+        seo.meta_keywords = form.get("meta_keywords") or None
+        seo.og_title = form.get("og_title") or None
+        seo.og_description = form.get("og_description") or None
+        seo.og_image = form.get("og_image") or None
+        seo.canonical_url = form.get("canonical_url") or None
+        seo.schema_json = form.get("schema_json") or None
+        db.add(seo)
+    else:
+        seo = SEOMeta(
+            page_id=page_id,
+            meta_title=form.get("meta_title") or None,
+            meta_description=form.get("meta_description") or None,
+            meta_keywords=form.get("meta_keywords") or None,
+            og_title=form.get("og_title") or None,
+            og_description=form.get("og_description") or None,
+            og_image=form.get("og_image") or None,
+            canonical_url=form.get("canonical_url") or None,
+            schema_json=form.get("schema_json") or None,
+        )
+        db.add(seo)
+    
+    db.commit()
+    redirect_url = f"/admin/page/{page_id}/seo?college_id={college_id}" if college_id else f"/admin/page/{page_id}/seo"
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 # --- Login / logout routes ---
