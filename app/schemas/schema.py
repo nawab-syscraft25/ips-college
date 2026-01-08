@@ -47,18 +47,29 @@ class Page(Base):
     __tablename__ = "pages"
     __table_args__ = (
         UniqueConstraint("college_id", "slug", name="uq_pages_college_slug"),
+        Index("ix_pages_college_active", "college_id", "is_active"),
+        Index("ix_pages_parent_id", "parent_page_id"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     college_id: Mapped[int] = mapped_column(ForeignKey("colleges.id", ondelete="SET NULL"), nullable=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    # PAGE TYPES: HOME, ABOUT, COLLEGES, COURSES, FACULTY, PLACEMENTS, FACILITIES, ADMISSIONS, CONTACT, STATIC
     page_type: Mapped[str] = mapped_column(String(50), nullable=False, default="STATIC")
+    # TEMPLATE TYPES: BLANK, HERO_SECTION, COURSES_LIST, FACULTY_LIST, PLACEMENTS, FACILITIES_LIST
+    template_type: Mapped[str] = mapped_column(String(50), nullable=True)
+    # For inheritance: parent page (when child college inherits from parent college)
+    parent_page_id: Mapped[int] = mapped_column(ForeignKey("pages.id", ondelete="SET NULL"), nullable=True)
+    # Whether this page can be inherited by child colleges
+    is_inheritable: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     college = relationship("College", back_populates="pages")
+    parent_page = relationship("Page", remote_side=[id], back_populates="inherited_pages")
+    inherited_pages = relationship("Page", remote_side=[parent_page_id], back_populates="parent_page")
     seo = relationship("SEOMeta", back_populates="page", uselist=False, cascade="all, delete-orphan")
     sections = relationship("PageSection", back_populates="page", cascade="all, delete-orphan", order_by="PageSection.sort_order")
     # shared sections can be attached to multiple pages
@@ -83,6 +94,10 @@ class SEOMeta(Base):
     og_description: Mapped[str] = mapped_column(String(1024), nullable=True)
     og_image: Mapped[str] = mapped_column(String(1024), nullable=True)
     schema_json: Mapped[dict] = mapped_column(JSON, nullable=True)
+    # Additional SEO fields
+    focus_keyword: Mapped[str] = mapped_column(String(255), nullable=True)
+    readability_score: Mapped[str] = mapped_column(String(50), nullable=True)  # good, okay, needs improvement
+    seo_score: Mapped[int] = mapped_column(Integer, nullable=True)  # 0-100
 
     page = relationship("Page", back_populates="seo")
 
@@ -95,9 +110,16 @@ class PageSection(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     page_id: Mapped[int] = mapped_column(ForeignKey("pages.id", ondelete="CASCADE"), nullable=False)
+    # SECTION TYPES: HERO, ABOUT, STATS, COURSES, FACULTY, PLACEMENTS, FACILITIES, TESTIMONIALS, ACHIEVEMENTS, FAQ, FORM, MEDIA_GALLERY, TEXT, CARDS
     section_type: Mapped[str] = mapped_column(String(50), nullable=False)
     section_title: Mapped[str] = mapped_column(String(255), nullable=True)
     section_subtitle: Mapped[str] = mapped_column(String(255), nullable=True)
+    section_description: Mapped[str] = mapped_column(Text, nullable=True)
+    # Background configuration
+    background_type: Mapped[str] = mapped_column(String(50), nullable=True, default="none")  # none, color, image, gradient
+    background_color: Mapped[str] = mapped_column(String(20), nullable=True)
+    background_image: Mapped[str] = mapped_column(String(1024), nullable=True)
+    background_gradient: Mapped[str] = mapped_column(String(255), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 

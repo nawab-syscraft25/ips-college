@@ -10,7 +10,15 @@ class CollegeResolverMiddleware(BaseHTTPMiddleware):
 
         db = SessionLocal()
         college = None
+        
+        # Get college_id from query params or session
+        college_id = request.query_params.get("college_id")
+        if college_id:
+            request.session["selected_college_id"] = int(college_id)
+        else:
+            college_id = request.session.get("selected_college_id")
 
+        # Subdomain-based college resolution (for frontend)
         if subdomain not in ["www", "ipsacademy", "localhost"]:
             college = db.query(College).filter(
                 College.subdomain == subdomain,
@@ -18,6 +26,13 @@ class CollegeResolverMiddleware(BaseHTTPMiddleware):
             ).first()
 
         request.state.college = college
+        request.state.selected_college_id = int(college_id) if college_id else None
+        
+        # Pre-fetch colleges for dropdown in admin templates
+        if "/admin" in request.url.path:
+            all_colleges = db.query(College).filter(College.parent_id == None).all()
+            request.state.colleges_for_dropdown = all_colleges
+        
         response = await call_next(request)
         db.close()
         return response

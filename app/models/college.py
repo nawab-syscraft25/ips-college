@@ -27,3 +27,13 @@ class College(Base):
     pages = relationship("Page", back_populates="college", cascade="all, delete-orphan")
     courses = relationship("Course", back_populates="college", cascade="all, delete-orphan")
     faculty = relationship("Faculty", back_populates="college", cascade="all, delete-orphan")
+    
+    def get_root_college(self):
+        """Get the root (parent) college in the hierarchy"""
+        if self.parent_id:
+            return self.parent.get_root_college()
+        return self
+    
+    def is_child(self):
+        """Check if this is a child college"""
+        return self.parent_id is not None

@@ -1,0 +1,234 @@
+{# Page builder section templates #}
+
+{# Hero Section #}
+{% macro hero_section(section, editable=False) %}
+<section class="hero-section" style="
+  background-color: {{ section.background_color if section.background_color else '#f8f9fa' }};
+  {% if section.background_image %}background-image: url('{{ section.background_image }}'); background-size: cover; background-position: center;{% endif %}
+  min-height: 500px; display: flex; align-items: center; justify-content: center;
+">
+  <div class="container text-center text-white">
+    <h1 class="display-4 fw-bold">{{ section.section_title }}</h1>
+    {% if section.section_subtitle %}<p class="lead">{{ section.section_subtitle }}</p>{% endif %}
+    {% if section.items %}
+      {% for item in section.items %}
+        <a href="{{ item.cta_link }}" class="btn btn-primary btn-lg mt-3">{{ item.cta_text }}</a>
+      {% endfor %}
+    {% endif %}
+  </div>
+</section>
+{% endmacro %}
+
+{# About Section #}
+{% macro about_section(section, editable=False) %}
+<section class="about-section py-5" style="background-color: {{ section.background_color if section.background_color else '#ffffff' }};">
+  <div class="container">
+    <h2 class="mb-4">{{ section.section_title }}</h2>
+    {% if section.section_subtitle %}<h3 class="text-muted mb-4">{{ section.section_subtitle }}</h3>{% endif %}
+    {% if section.section_description %}<p class="lead">{{ section.section_description }}</p>{% endif %}
+  </div>
+</section>
+{% endmacro %}
+
+{# Stats/Key Numbers Section #}
+{% macro stats_section(section, editable=False) %}
+<section class="stats-section py-5" style="background-color: {{ section.background_color if section.background_color else '#f8f9fa' }};">
+  <div class="container">
+    <h2 class="mb-5 text-center">{{ section.section_title }}</h2>
+    <div class="row g-4">
+      {% for item in section.items %}
+      <div class="col-md-3 text-center">
+        <div class="stat-card">
+          <h3 class="text-primary fw-bold" style="font-size: 48px;">{{ item.title }}</h3>
+          <p class="text-muted">{{ item.subtitle }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endmacro %}
+
+{# Courses List Section #}
+{% macro courses_section(section, courses=[], editable=False) %}
+<section class="courses-section py-5" style="background-color: {{ section.background_color if section.background_color else '#ffffff' }};">
+  <div class="container">
+    <h2 class="mb-5">{{ section.section_title }}</h2>
+    <div class="row g-4">
+      {% for course in courses %}
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ course.name }}</h5>
+            <p class="card-text">{{ course.overview }}</p>
+            <ul class="small text-muted">
+              {% if course.level %}<li><strong>Level:</strong> {{ course.level }}</li>{% endif %}
+              {% if course.duration %}<li><strong>Duration:</strong> {{ course.duration }}</li>{% endif %}
+              {% if course.department %}<li><strong>Department:</strong> {{ course.department }}</li>{% endif %}
+            </ul>
+            <a href="#" class="btn btn-sm btn-outline-primary">Learn More</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endmacro %}
+
+{# Faculty List Section #}
+{% macro faculty_section(section, faculty=[], editable=False) %}
+<section class="faculty-section py-5" style="background-color: {{ section.background_color if section.background_color else '#f8f9fa' }};">
+  <div class="container">
+    <h2 class="mb-5 text-center">{{ section.section_title }}</h2>
+    <div class="row g-4">
+      {% for member in faculty %}
+      <div class="col-md-3 text-center">
+        <div class="faculty-card">
+          {% if member.photo_url %}
+            <img src="{{ member.photo_url }}" class="rounded-circle mb-3" width="150" height="150" alt="{{ member.name }}">
+          {% else %}
+            <div class="rounded-circle bg-light mb-3" style="width: 150px; height: 150px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+              <span class="text-muted">No Photo</span>
+            </div>
+          {% endif %}
+          <h5>{{ member.name }}</h5>
+          {% if member.designation %}<p class="text-primary fw-semibold">{{ member.designation }}</p>{% endif %}
+          {% if member.qualification %}<small class="text-muted">{{ member.qualification }}</small>{% endif %}
+          {% if member.bio %}<p class="mt-2">{{ member.bio }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endmacro %}
+
+{# Placements Section #}
+{% macro placements_section(section, placement_data=None, editable=False) %}
+<section class="placements-section py-5" style="background-color: {{ section.background_color if section.background_color else '#ffffff' }};">
+  <div class="container">
+    <h2 class="mb-5">{{ section.section_title }}</h2>
+    {% if placement_data %}
+    <div class="row mb-5">
+      <div class="col-md-4 text-center">
+        <div class="placement-stat">
+          <h4 class="text-primary fw-bold">{{ placement_data.highest_package }}</h4>
+          <p class="text-muted">Highest Package</p>
+        </div>
+      </div>
+      <div class="col-md-4 text-center">
+        <div class="placement-stat">
+          <h4 class="text-primary fw-bold">{{ placement_data.average_package }}</h4>
+          <p class="text-muted">Average Package</p>
+        </div>
+      </div>
+      <div class="col-md-4 text-center">
+        <div class="placement-stat">
+          <h4 class="text-primary fw-bold">{{ placement_data.placement_percentage }}%</h4>
+          <p class="text-muted">Placement Rate</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if section.items %}
+    <div class="row g-3">
+      {% for recruiter in section.items %}
+      <div class="col-md-2 text-center">
+        {% if recruiter.image_url %}
+          <img src="{{ recruiter.image_url }}" class="img-fluid" alt="{{ recruiter.title }}" style="max-height: 80px;">
+        {% else %}
+          <div class="bg-light p-3">{{ recruiter.title }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endmacro %}
+
+{# Facilities Section #}
+{% macro facilities_section(section, facilities=[], editable=False) %}
+<section class="facilities-section py-5" style="background-color: {{ section.background_color if section.background_color else '#f8f9fa' }};">
+  <div class="container">
+    <h2 class="mb-5">{{ section.section_title }}</h2>
+    <div class="row g-4">
+      {% for facility in facilities %}
+      <div class="col-md-4">
+        <div class="facility-card">
+          {% if facility.image_url %}
+            <img src="{{ facility.image_url }}" class="img-fluid rounded mb-3" alt="{{ facility.name }}">
+          {% endif %}
+          <h5>{{ facility.name }}</h5>
+          {% if facility.description %}<p>{{ facility.description }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endmacro %}
+
+{# Cards Grid Section #}
+{% macro cards_section(section, editable=False) %}
+<section class="cards-section py-5" style="background-color: {{ section.background_color if section.background_color else '#ffffff' }};">
+  <div class="container">
+    <h2 class="mb-5">{{ section.section_title }}</h2>
+    <div class="row g-4">
+      {% for item in section.items %}
+      <div class="col-md-4">
+        <div class="card h-100">
+          {% if item.image_url %}
+            <img src="{{ item.image_url }}" class="card-img-top" alt="{{ item.title }}">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ item.title }}</h5>
+            {% if item.subtitle %}<h6 class="card-subtitle text-muted">{{ item.subtitle }}</h6>{% endif %}
+            {% if item.description %}<p class="card-text">{{ item.description }}</p>{% endif %}
+            {% if item.cta_text and item.cta_link %}<a href="{{ item.cta_link }}" class="btn btn-primary btn-sm">{{ item.cta_text }}</a>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endmacro %}
+
+{# Text Block Section #}
+{% macro text_section(section, editable=False) %}
+<section class="text-section py-5" style="background-color: {{ section.background_color if section.background_color else '#ffffff' }};">
+  <div class="container" style="max-width: 900px;">
+    {% if section.section_title %}<h2 class="mb-4">{{ section.section_title }}</h2>{% endif %}
+    {% if section.section_description %}<div class="prose">{{ section.section_description }}</div>{% endif %}
+  </div>
+</section>
+{% endmacro %}
+
+{# Main Page Renderer #}
+{% macro render_page(page, colleges={}, courses={}, faculty={}, placement={}, facilities={}) %}
+<main>
+  {% for section in page.sections if section.is_active %}
+    {% if section.section_type == 'HERO' %}
+      {{ hero_section(section) }}
+    {% elif section.section_type == 'ABOUT' %}
+      {{ about_section(section) }}
+    {% elif section.section_type == 'STATS' %}
+      {{ stats_section(section) }}
+    {% elif section.section_type == 'COURSES' %}
+      {{ courses_section(section, courses.get(page.college_id, [])) }}
+    {% elif section.section_type == 'FACULTY' %}
+      {{ faculty_section(section, faculty.get(page.college_id, [])) }}
+    {% elif section.section_type == 'PLACEMENTS' %}
+      {{ placements_section(section, placement.get(page.college_id)) }}
+    {% elif section.section_type == 'FACILITIES' %}
+      {{ facilities_section(section, facilities.get(page.college_id, [])) }}
+    {% elif section.section_type == 'CARDS' %}
+      {{ cards_section(section) }}
+    {% elif section.section_type == 'TEXT' %}
+      {{ text_section(section) }}
+    {% endif %}
+  {% endfor %}
+</main>
+{% endmacro %}

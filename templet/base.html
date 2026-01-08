@@ -22,6 +22,25 @@
           </div>
         </div>
         <div class="text-light small d-flex align-items-center gap-2">
+          <!-- College Selector -->
+          {% if colleges %}
+          <select id="collegeSelector" class="form-select form-select-sm" style="width: 200px; background-color: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
+            <option value="">-- Select College --</option>
+            {% for college in colleges %}
+            <option value="{{ college.id }}" {% if college.id == selected_college_id %}selected{% endif %}>
+              {{ college.name }}
+            </option>
+            {% endfor %}
+          </select>
+          <script>
+            document.getElementById('collegeSelector').addEventListener('change', function() {
+              if (this.value) {
+                window.location.href = '?college_id=' + this.value;
+              }
+            });
+          </script>
+          {% endif %}
+          <span class="divider"></span>
           <span class="text-light-80">{{ request.session.get('admin_user', {}).get('username', 'Administrator') }}</span>
           <span class="divider"></span>
           <a class="text-decoration-none text-white-50" href="/admin/logout">Logout</a>
@@ -41,18 +60,23 @@
           <div class="sidebar-label">CMS</div>
           <a class="list-group-item list-group-item-action {{ 'active' if '/admin/cms/menus' in request.url.path else '' }}" href="/admin/cms/menus">Menus</a>
           <a class="list-group-item list-group-item-action {{ 'active' if '/admin/pages' in request.url.path else '' }}" href="/admin/pages">Pages</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/cms/shared-sections' in request.url.path else '' }}" href="/admin/cms/shared-sections">Shared Sections</a>
           <a class="list-group-item list-group-item-action {{ 'active' if '/admin/cms/media' in request.url.path else '' }}" href="/admin/cms/media">Media</a>
           <div class="sidebar-label">Colleges</div>
           <a class="list-group-item list-group-item-action {{ 'active' if '/admin/colleges' in request.url.path else '' }}" href="/admin/colleges">Colleges</a>
-          <div class="sidebar-label">College views</div>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/courses' in request.url.path else '' }}" href="/admin/courses">Courses (by College)</a>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/faculty' in request.url.path else '' }}" href="/admin/faculty">Faculty (by College)</a>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/placements' in request.url.path else '' }}" href="/admin/placements">Placements (by College)</a>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/activities' in request.url.path else '' }}" href="/admin/activities">Activities (by College)</a>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/facilities' in request.url.path else '' }}" href="/admin/facilities">Facilities (by College)</a>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/admissions' in request.url.path else '' }}" href="/admin/admissions">Admissions</a>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/applications' in request.url.path else '' }}" href="/admin/applications">Applications</a>
-          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/enquiries' in request.url.path else '' }}" href="/admin/enquiries">Enquiries</a>
+          <div class="sidebar-label">College Content</div>
+          {% if selected_college_id %}
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/courses' in request.url.path else '' }}" href="/admin/courses?college_id={{ selected_college_id }}">Courses</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/faculty' in request.url.path else '' }}" href="/admin/faculty?college_id={{ selected_college_id }}">Faculty</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/placements' in request.url.path else '' }}" href="/admin/placements?college_id={{ selected_college_id }}">Placements</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/activities' in request.url.path else '' }}" href="/admin/activities?college_id={{ selected_college_id }}">Activities</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/facilities' in request.url.path else '' }}" href="/admin/facilities?college_id={{ selected_college_id }}">Facilities</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/admissions' in request.url.path else '' }}" href="/admin/admissions?college_id={{ selected_college_id }}">Admissions</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/applications' in request.url.path else '' }}" href="/admin/applications?college_id={{ selected_college_id }}">Applications</a>
+          <a class="list-group-item list-group-item-action {{ 'active' if '/admin/enquiries' in request.url.path else '' }}" href="/admin/enquiries?college_id={{ selected_college_id }}">Enquiries</a>
+          {% else %}
+          <small class="px-3 py-2 text-muted">Select a college above</small>
+          {% endif %}
           <a class="list-group-item list-group-item-action text-danger" href="/admin/logout">Logout</a>
         </div>
       </div>
