@@ -262,7 +262,7 @@
     <label>Page Title:</label>
     <input type="text" id="pageTitle" value="{{ page.title if page else 'Untitled Page' }}" placeholder="Enter page title">
   </div>
-  <button class="toolbar-btn save" onclick="savePage()">
+  <button class="toolbar-btn save" onclick="savePage(event)" type="button">
     <i class="fas fa-save"></i> Save Page
   </button>
   <a href="/admin/pages?college_id={{ selected_college_id }}" class="toolbar-btn">
@@ -284,16 +284,17 @@
                 <span class="section-type-badge">{{ section.section_type }}</span>
               </div>
               <div class="section-actions">
-                <button class="section-action-btn" onclick="editSection({{ section.id }})">
+                <button class="section-action-btn" onclick="editSection({{ section.id }})" type="button">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="section-action-btn delete" onclick="deleteSection({{ section.id }})">
+                <button class="section-action-btn delete" onclick="deleteSection({{ section.id }})" type="button">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
             </div>
             <div class="section-content">
-              {{ section.section_description or 'Click to edit' }}
+              <strong>{{ section.section_title or section.section_type }}</strong><br>
+              {{ section.section_subtitle or section.section_description or 'Click edit to configure' }}
             </div>
           </div>
           {% endfor %}
@@ -380,54 +381,40 @@
 </div>
 
 <script>
+  const pageId = {{ page.id if page else 'null' }};
+  const collegeId = "{{ selected_college_id }}";
+
   function addSection(type) {
-    const canvas = document.getElementById('canvas');
-    const sectionHtml = `
-      <div class="section-block" draggable="true">
-        <div class="section-header">
-          <div>
-            <span class="section-type-badge">${type}</span>
-          </div>
-          <div class="section-actions">
-            <button class="section-action-btn" onclick="editSection(this)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="section-action-btn delete" onclick="deleteSection(this)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-        <div class="section-content">
-          Click to edit this ${type} section
-        </div>
-      </div>
-    `;
-    canvas.insertAdjacentHTML('beforeend', sectionHtml);
-  }
-  
-  function editSection(elem) {
-    const content = prompt('Edit section content:');
-    if (content !== null) {
-      if (typeof elem === 'number') {
-        // ID passed
-        alert('Edit section ' + elem + ' - API to be implemented');
-      } else {
-        // Element passed
-        const section = elem.closest('.section-block');
-        section.querySelector('.section-content').textContent = content;
-      }
+    if (!pageId) {
+      alert('Please save the page first before adding sections');
+      return;
     }
+    
+    // Redirect to section creation form
+    window.location.href = `/admin/pages/${pageId}/sections/new`;
   }
   
-  function deleteSection(elem) {
-    if (confirm('Delete this section?')) {
-      if (typeof elem === 'number') {
-        // ID passed
-        alert('Delete section ' + elem + ' - API to be implemented');
-      } else {
-        // Element passed
-        elem.closest('.section-block').remove();
-      }
+  function editSection(sectionId) {
+    if (!pageId) {
+      alert('Invalid page ID');
+      return;
+    }
+    // Redirect to section edit form
+    window.location.href = `/admin/pages/${pageId}/sections/${sectionId}/edit`;
+  }
+  
+  function deleteSection(sectionId) {
+    if (!pageId) {
+      alert('Invalid page ID');
+      return;
+    }
+    
+    if (confirm('Delete this section? This cannot be undone.')) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/pages/${pageId}/sections/${sectionId}/delete`;
+      document.body.appendChild(form);
+      form.submit();
     }
   }
   
@@ -436,11 +423,69 @@
     document.getElementById('canvas').style.backgroundColor = color;
   }
   
-  function savePage() {
-    const title = document.getElementById('pageTitle').value;
+  function savePage(event) {
+    event.preventDefault();
+    const title = document.getElementById('pageTitle').value.trim();
     const isPublished = document.getElementById('isPublished').checked;
-    alert('Save page: ' + title + ' (Published: ' + isPublished + ')\n\nAPI integration needed in routes');
+    
+    if (!title) {
+      alert('Please enter a page title');
+      return;
+    }
+    
+    if (!pageId) {
+      alert('Cannot save - page ID is missing');
+      return;
+    }
+    
+    // Create and submit form using FormData for proper encoding
+    const formData = new FormData();
+    formData.append('title', title);
+    // Always append is_published with explicit true/false
+    const publishValue = isPublished ? '1' : '0';
+    formData.append('is_published', publishValue);
+    
+    console.log('Saving page:', { pageId, title, isPublished, publishValue });
+    
+    const updateUrl = `/admin/pages/${pageId}/edit?college_id=${collegeId}`;
+    
+    // Show saving indicator
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    fetch(updateUrl, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      console.log('Save response:', response.status);
+      if (response.ok || response.status === 303) {
+        // Success - show confirmation
+        btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }, 2000);
+      } else {
+        throw new Error('Save failed with status ' + response.status);
+      }
+    })
+    .catch(error => {
+      console.error('Save error:', error);
+      alert('Failed to save page: ' + error.message);
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    });
   }
+  
+  // Handle Enter key in title field
+  document.getElementById('pageTitle').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      savePage();
+    }
+  });
   
   // Drag and drop functionality
   let draggedElement = null;
@@ -449,23 +494,67 @@
     if (e.target.classList.contains('section-block')) {
       draggedElement = e.target;
       e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
     }
   });
   
   document.addEventListener('dragend', function(e) {
     if (e.target.classList.contains('section-block')) {
       e.target.classList.remove('dragging');
+      draggedElement = null;
     }
   });
   
   document.addEventListener('dragover', function(e) {
-    e.preventDefault();
+    if (draggedElement) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      const canvas = document.getElementById('canvas');
+      if (e.target === canvas || canvas.contains(e.target)) {
+        canvas.style.backgroundColor = 'rgba(37, 99, 235, 0.05)';
+      }
+    }
+  });
+  
+  document.addEventListener('dragleave', function(e) {
+    const canvas = document.getElementById('canvas');
+    if (e.target === canvas) {
+      canvas.style.backgroundColor = '#f9fafb';
+    }
   });
   
   document.addEventListener('drop', function(e) {
     e.preventDefault();
-    if (draggedElement && e.target.id === 'canvas') {
-      e.target.appendChild(draggedElement);
+    
+    const canvas = document.getElementById('canvas');
+    if (draggedElement && (e.target === canvas || canvas.contains(e.target))) {
+      canvas.style.backgroundColor = '#f9fafb';
+      
+      // Get all section blocks and reorder them
+      const blocks = Array.from(canvas.querySelectorAll('.section-block'));
+      const draggedIndex = blocks.indexOf(draggedElement);
+      
+      // Find the drop target
+      const afterElement = document.elementFromPoint(e.clientX, e.clientY);
+      const afterBlock = afterElement?.closest('.section-block');
+      
+      if (afterBlock && afterBlock !== draggedElement) {
+        const afterIndex = blocks.indexOf(afterBlock);
+        if (draggedIndex < afterIndex) {
+          afterBlock.parentNode.insertBefore(draggedElement, afterBlock.nextSibling);
+        } else {
+          afterBlock.parentNode.insertBefore(draggedElement, afterBlock);
+        }
+      }
+    }
+  });
+  
+  // Initialize canvas background color on load
+  window.addEventListener('load', function() {
+    const bgColor = document.getElementById('bgColor');
+    if (bgColor && bgColor.value) {
+      document.getElementById('canvas').style.backgroundColor = bgColor.value;
     }
   });
 </script>

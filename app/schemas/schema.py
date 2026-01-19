@@ -122,6 +122,8 @@ class PageSection(Base):
     background_gradient: Mapped[str] = mapped_column(String(255), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Extra data for type-specific fields (hero image, CTA, etc.)
+    extra_data: Mapped[dict] = mapped_column(JSON, nullable=True)
 
     page = relationship("Page", back_populates="sections")
     items = relationship("SectionItem", back_populates="section", cascade="all, delete-orphan", order_by="SectionItem.sort_order")
@@ -360,6 +362,9 @@ class MenuItem(Base):
     parent_id: Mapped[int] = mapped_column(ForeignKey("menu_items.id", ondelete="CASCADE"), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    
+    # Self-referential relationship for parent menu item
+    parent: Mapped['MenuItem'] = relationship("MenuItem", remote_side=[id], foreign_keys=[parent_id], uselist=False)
 
 
 class MediaAsset(Base):

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
 from app.models.college import College
 from app.schemas.schema import (
@@ -123,7 +123,7 @@ def list_menus(request: Request, db: Session = Depends(get_db)):
         return _require_login(request)
     colleges = db.query(College).order_by(College.name).all()
     college_id = request.query_params.get("college_id")
-    q = db.query(MenuItem).order_by(MenuItem.location, MenuItem.parent_id, MenuItem.sort_order)
+    q = db.query(MenuItem).options(joinedload(MenuItem.parent)).order_by(MenuItem.location, MenuItem.parent_id, MenuItem.sort_order)
     selected_college_id = None
     if college_id:
         try:
@@ -1223,16 +1223,50 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     form = await request.form()
+    
+    section_type = form.get("section_type") or "CONTENT"
+    extra_data = {}
+    
+    # Handle type-specific data (HERO section)
+    if section_type == "HERO":
+        extra_data['hero_style'] = form.get("hero_style") or "overlay"
+        extra_data['hero_text_color'] = form.get("hero_text_color") or "white"
+        extra_data['hero_height'] = form.get("hero_height") or "medium"
+        extra_data['hero_cta_text'] = form.get("hero_cta_text") or None
+        extra_data['hero_cta_link'] = form.get("hero_cta_link") or None
+    
     section = PageSection(
         page_id=page_id,
-        section_type=form.get("section_type") or "CONTENT",
+        section_type=section_type,
         section_title=form.get("section_title") or None,
         section_subtitle=form.get("section_subtitle") or None,
         sort_order=int(form.get("sort_order") or 0),
         is_active=bool(form.get("is_active")),
+        extra_data=extra_data if extra_data else None
     )
     db.add(section)
     db.commit()
+    db.refresh(section)
+    
+    # Handle hero image upload after section is created (we need the section ID)
+    if section_type == "HERO":
+        hero_image = form.get("hero_image")
+        if hero_image and hasattr(hero_image, 'filename') and hero_image.filename:
+            import os
+            from pathlib import Path
+            upload_dir = Path("templet/static/uploads/hero")
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            
+            filename = f"hero_{section.id}_{hero_image.filename}"
+            filepath = upload_dir / filename
+            content = await hero_image.read()
+            with open(filepath, 'wb') as f:
+                f.write(content)
+            
+            section.extra_data['hero_image_url'] = f"/static/uploads/hero/{filename}"
+            db.add(section)
+            db.commit()
+    
     return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
 
 
@@ -1256,11 +1290,44 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
     section = db.query(PageSection).filter(PageSection.id == section_id).first()
     if not section:
         return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
+    
     section.section_type = form.get("section_type") or "CONTENT"
     section.section_title = form.get("section_title") or None
     section.section_subtitle = form.get("section_subtitle") or None
     section.sort_order = int(form.get("sort_order") or 0)
     section.is_active = bool(form.get("is_active"))
+    
+    # Handle type-specific data (HERO section)
+    extra_data = section.extra_data or {}
+    if section.section_type == "HERO":
+        # Handle hero image upload
+        hero_image = form.get("hero_image")
+        if hero_image and hasattr(hero_image, 'filename') and hero_image.filename:
+            import os
+            from pathlib import Path
+            upload_dir = Path("templet/static/uploads/hero")
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            
+            filename = f"hero_{section_id}_{hero_image.filename}"
+            filepath = upload_dir / filename
+            content = await hero_image.read()
+            with open(filepath, 'wb') as f:
+                f.write(content)
+            extra_data['hero_image_url'] = f"/static/uploads/hero/{filename}"
+        
+        # Keep existing image if no new one uploaded
+        if not hero_image or not hasattr(hero_image, 'filename') or not hero_image.filename:
+            if form.get("existing_hero_image"):
+                extra_data['hero_image_url'] = form.get("existing_hero_image")
+        
+        # Save other hero settings
+        extra_data['hero_cta_text'] = form.get("hero_cta_text") or None
+        extra_data['hero_cta_link'] = form.get("hero_cta_link") or None
+        extra_data['hero_style'] = form.get("hero_style") or "overlay"
+        extra_data['hero_text_color'] = form.get("hero_text_color") or "white"
+        extra_data['hero_height'] = form.get("hero_height") or "medium"
+    
+    section.extra_data = extra_data
     db.add(section)
     db.commit()
     return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
@@ -1382,10 +1449,21 @@ async def create_page(request: Request, db: Session = Depends(get_db)):
     college_id = request.query_params.get("college_id")
     
     title = form.get("title")
-    slug = form.get("slug")
+    slug_input = form.get("slug")
     college_id_form = form.get("college_id") or None
     is_published = bool(form.get("is_published"))
     is_inheritable = bool(form.get("is_inheritable"))
+    
+    # Generate slug from title if not provided
+    if slug_input:
+        slug = slug_input
+    else:
+        # Auto-generate slug from title
+        import re
+        slug = title.lower().strip() if title else "page"
+        slug = re.sub(r'[^\w\s-]', '', slug)
+        slug = re.sub(r'[\s_-]+', '-', slug)
+        slug = slug.strip('-')
     
     page = Page(
         title=title, 
@@ -1478,10 +1556,27 @@ async def update_page(request: Request, page_id: int, db: Session = Depends(get_
         return RedirectResponse(url=redirect_url, status_code=303)
     
     page.title = form.get("title")
-    page.slug = form.get("slug")
+    
+    # Generate slug from title if not provided
+    slug_input = form.get("slug")
+    if slug_input:
+        page.slug = slug_input
+    else:
+        # Auto-generate slug from title
+        import re
+        slug = page.title.lower().strip() if page.title else "page"
+        slug = re.sub(r'[^\w\s-]', '', slug)
+        slug = re.sub(r'[\s_-]+', '-', slug)
+        slug = slug.strip('-')
+        page.slug = slug
+    
     college_id_form = form.get("college_id") or None
     page.college_id = int(college_id_form) if college_id_form else None
-    page.is_published = bool(form.get("is_published"))
+    # Handle is_published properly - check if value is '1' or 'on'
+    is_published_value = form.get("is_published", "0")
+    print(f"DEBUG: is_published_value = {repr(is_published_value)}, type = {type(is_published_value)}")
+    page.is_published = is_published_value in ('1', 'on', 'true', True)
+    print(f"DEBUG: page.is_published = {page.is_published}")
     page.is_inheritable = bool(form.get("is_inheritable"))
 
     # update or create SEO meta
@@ -1572,6 +1667,10 @@ def page_designer(request: Request, page_id: int, db: Session = Depends(get_db))
     page = db.query(Page).filter(Page.id == page_id).first()
     if not page:
         return RedirectResponse(url="/admin/pages", status_code=303)
+    
+    # Use page's college_id if not provided in query params
+    if not college_id and page.college_id:
+        college_id = str(page.college_id)
     
     sections = db.query(PageSection).filter(PageSection.page_id == page_id).order_by(PageSection.sort_order).all()
     
