@@ -198,15 +198,15 @@
     </thead>
     <tbody>
       {% for page in pages %}
-      <tr class="page-row" data-status="{{ 'published' if page.is_published else 'draft' }}">
+      <tr class="page-row" data-status="{{ 'published' if page.is_active else 'draft' }}">
         <td>
           <strong>{{ page.title }}</strong>
           {% if page.parent_page_id %}<br><small style="color: #6b7280;">↳ Inherited from parent</small>{% endif %}
         </td>
         <td><code style="background: var(--light); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem;">{{ page.slug }}</code></td>
         <td>
-          <span class="page-status {{ 'status-published' if page.is_published else 'status-draft' }}">
-            {{ 'Published' if page.is_published else 'Draft' }}
+          <span class="page-status {{ 'status-published' if page.is_active else 'status-draft' }}">
+            {{ 'Published' if page.is_active else 'Draft' }}
           </span>
         </td>
         <td>{{ page.sections|length }} sections</td>
@@ -255,7 +255,7 @@
       <div class="page-card-header">
         <h3 class="page-card-title">{{ page.title }}</h3>
         <span class="page-card-badge">
-          {{ 'Published' if page.is_published else 'Draft' }}
+          {{ 'Published' if page.is_active else 'Draft' }}
         </span>
       </div>
       <div class="page-card-meta">

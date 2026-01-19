@@ -79,6 +79,11 @@ class Page(Base):
         back_populates="pages",
         order_by="page_shared_sections.c.sort_order",
     )
+    
+    @property
+    def seo_meta(self):
+        """Alias for seo relationship for backward compatibility"""
+        return self.seo
 
 
 class SEOMeta(Base):

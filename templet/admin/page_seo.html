@@ -240,15 +240,15 @@
     <div class="seo-score">
       <div class="score-box">
         <div class="score-label">Overall Score</div>
-        <div class="score-value">{{ page.seo_meta.seo_score if page and page.seo_meta else 0 }}/100</div>
+        <div class="score-value">{{ page.seo.seo_score if page and page.seo else 0 }}/100</div>
       </div>
       <div class="score-box">
         <div class="score-label">Readability</div>
-        <div class="score-value">{{ page.seo_meta.readability_score if page and page.seo_meta else 0 }}/100</div>
+        <div class="score-value">{{ page.seo.readability_score if page and page.seo else 0 }}/100</div>
       </div>
       <div class="score-box">
         <div class="score-label">Keywords</div>
-        <div class="score-value">{{ 1 if page and page.seo_meta and page.seo_meta.focus_keyword else 0 }}/1</div>
+        <div class="score-value">{{ 1 if page and page.seo and page.seo.focus_keyword else 0 }}/1</div>
       </div>
     </div>
   </div>
@@ -265,10 +265,10 @@
       <div class="form-group">
         <label class="form-label">Meta Title (Title Tag) *</label>
         <input type="text" class="form-control" id="metaTitle" maxlength="60" 
-               value="{{ page.seo_meta.meta_title if page and page.seo_meta else page.title if page else '' }}"
+               value="{{ page.seo.meta_title if page and page.seo else page.title if page else '' }}"
                placeholder="Keep it under 60 characters">
         <div class="hint-text">
-          <span id="titleCount">{{ page.seo_meta.meta_title|length if page and page.seo_meta else 0 }}</span>/60 characters
+          <span id="titleCount">{{ page.seo.meta_title|length if page and page.seo else 0 }}</span>/60 characters
           <span id="titleStatus" style="margin-left: 1rem; color: #6b7280;">Good length</span>
         </div>
       </div>
@@ -277,9 +277,9 @@
       <div class="form-group">
         <label class="form-label">Meta Description *</label>
         <textarea class="form-control" id="metaDescription" maxlength="160" 
-                  placeholder="Describe your page in 150-160 characters">{{ page.seo_meta.meta_description if page and page.seo_meta else '' }}</textarea>
+                  placeholder="Describe your page in 150-160 characters">{{ page.seo.meta_description if page and page.seo else '' }}</textarea>
         <div class="hint-text">
-          <span id="descCount">{{ page.seo_meta.meta_description|length if page and page.seo_meta else 0 }}</span>/160 characters
+          <span id="descCount">{{ page.seo.meta_description|length if page and page.seo else 0 }}</span>/160 characters
           <span id="descStatus" style="margin-left: 1rem; color: #6b7280;">Good length</span>
         </div>
       </div>
@@ -288,7 +288,7 @@
       <div class="form-group">
         <label class="form-label">Focus Keyword *</label>
         <input type="text" class="form-control" id="focusKeyword" 
-               value="{{ page.seo_meta.focus_keyword if page and page.seo_meta else '' }}"
+               value="{{ page.seo.focus_keyword if page and page.seo else '' }}"
                placeholder="e.g., best engineering college in Delhi">
         <div class="hint-text">Enter 1-3 words you want to rank for</div>
       </div>
@@ -299,8 +299,8 @@
         <input type="text" class="form-control" id="keywordsInput" 
                placeholder="Type and press Enter to add keywords">
         <div class="keyword-tags" id="keywordsList" style="margin-top: 1rem;">
-          {% if page and page.seo_meta and page.seo_meta.keywords %}
-            {% for keyword in page.seo_meta.keywords.split(',') %}
+          {% if page and page.seo and page.seo.keywords %}
+            {% for keyword in page.seo.keywords.split(',') %}
             <div class="keyword-tag">
               {{ keyword.strip() }}
               <button type="button" onclick="removeKeyword(this)">×</button>
@@ -323,7 +323,7 @@
       <div class="form-group">
         <label class="form-label">Canonical URL</label>
         <input type="url" class="form-control" id="canonicalUrl" 
-               value="{{ page.seo_meta.canonical_url if page and page.seo_meta else '' }}"
+               value="{{ page.seo.canonical_url if page and page.seo else '' }}"
                placeholder="https://yourdomain.com/page">
         <div class="hint-text">Leave blank to auto-generate</div>
       </div>
@@ -335,19 +335,20 @@
         <div class="form-group">
           <label class="form-label">OG Title</label>
           <input type="text" class="form-control" id="ogTitle" maxlength="50"
-                 value="{{ page.seo_meta.og_title if page and page.seo_meta else '' }}"
+                 value="{{ page.seo.og_title if page and page.seo else '' }}"
                  placeholder="Title for social sharing">
         </div>
 
         <div class="form-group">
           <label class="form-label">OG Description</label>
           <textarea class="form-control" id="ogDescription" maxlength="160"
-                    placeholder="Description for social sharing"></textarea>
+                    placeholder="Description for social sharing">{{ page.seo.og_description if page and page.seo else '' }}</textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label">OG Image URL</label>
           <input type="url" class="form-control" id="ogImage" 
+                 value="{{ page.seo.og_image if page and page.seo else '' }}"
                  placeholder="https://yourdomain.com/image.jpg">
         </div>
       </div>
@@ -357,12 +358,12 @@
         <h4 style="font-weight: 600; color: var(--dark); margin-bottom: 1rem;">Indexing</h4>
         
         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-          <input type="checkbox" id="indexable" {{ 'checked' if not page or page.seo_meta and not page.seo_meta.no_index else '' }}>
+          <input type="checkbox" id="indexable" {{ 'checked' if not page or page.seo and not page.seo.no_index else '' }}>
           <span>Allow search engines to index this page</span>
         </label>
         
         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-top: 0.75rem;">
-          <input type="checkbox" id="followLinks" {{ 'checked' if not page or page.seo_meta and not page.seo_meta.no_follow else '' }}>
+          <input type="checkbox" id="followLinks" {{ 'checked' if not page or page.seo and not page.seo.no_follow else '' }}>
           <span>Allow search engines to follow links on this page</span>
         </label>
       </div>
@@ -377,9 +378,9 @@
     </div>
     
     <div class="preview-box">
-      <div class="preview-title" id="previewTitle">{{ page.seo_meta.meta_title if page and page.seo_meta else page.title if page else 'Your Page Title' }}</div>
+      <div class="preview-title" id="previewTitle">{{ page.seo.meta_title if page and page.seo else page.title if page else 'Your Page Title' }}</div>
       <div class="preview-url">{{ domain if domain else 'ipsacademy.edu.in' }}/{{ page.slug if page else 'your-page' }}</div>
-      <div class="preview-description" id="previewDesc">{{ page.seo_meta.meta_description if page and page.seo_meta else 'Your meta description appears here' }}</div>
+      <div class="preview-description" id="previewDesc">{{ page.seo.meta_description if page and page.seo else 'Your meta description appears here' }}</div>
     </div>
   </div>
 
@@ -443,11 +444,9 @@
     </button>
   </div>
 </div>
-
 <script>
   document.getElementById('saveSEOBtn')?.addEventListener('click', saveSEO);
 
-<script>
   // Character counters
   document.getElementById('metaTitle')?.addEventListener('input', function() {
     document.getElementById('titleCount').textContent = this.value.length;

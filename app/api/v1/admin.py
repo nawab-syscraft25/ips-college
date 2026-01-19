@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import event
 from app.core.database import get_db
 from app.models.college import College
 from app.schemas.schema import (
@@ -1254,21 +1255,32 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
     # Handle hero image upload after section is created (we need the section ID)
     if section_type == "HERO":
         hero_image = form.get("hero_image")
-        if hero_image and hasattr(hero_image, 'filename') and hero_image.filename:
-            import os
-            from pathlib import Path
-            upload_dir = Path("templet/static/uploads/hero")
-            upload_dir.mkdir(parents=True, exist_ok=True)
-            
-            filename = f"hero_{section.id}_{hero_image.filename}"
-            filepath = upload_dir / filename
-            content = await hero_image.read()
-            with open(filepath, 'wb') as f:
-                f.write(content)
-            
-            section.extra_data['hero_image_url'] = f"/static/uploads/hero/{filename}"
-            db.add(section)
-            db.commit()
+        
+        if hero_image:
+            try:
+                filename = hero_image.filename
+                if filename and filename.strip():
+                    import os
+                    from pathlib import Path
+                    upload_dir = Path("templet/static/uploads/hero")
+                    upload_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    # Generate filename with section ID
+                    file_ext = os.path.splitext(filename)[1]
+                    new_filename = f"hero_{section.id}{file_ext}"
+                    filepath = upload_dir / new_filename
+                    
+                    # Read and save file
+                    content = await hero_image.read()
+                    if content:
+                        with open(filepath, 'wb') as f:
+                            f.write(content)
+                        
+                        section.extra_data['hero_image_url'] = f"/static/uploads/hero/{new_filename}"
+                        db.add(section)
+                        db.commit()
+            except Exception as e:
+                print(f"Error uploading hero image: {str(e)}")
     
     return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
 
@@ -1279,6 +1291,7 @@ def edit_page_section_form(request: Request, page_id: int, section_id: int, db: 
         return _require_login(request)
     page = db.query(Page).filter(Page.id == page_id).first()
     section = db.query(PageSection).filter(PageSection.id == section_id).first()
+    print(f"DEBUG: Loading section {section_id}, extra_data: {section.extra_data if section else 'N/A'}")
     return templates.TemplateResponse(
         "admin/section_form.html",
         {"request": request, "action": "edit", "page": page, "section": section},
@@ -1305,23 +1318,45 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
     if section.section_type == "HERO":
         # Handle hero image upload
         hero_image = form.get("hero_image")
-        if hero_image and hasattr(hero_image, 'filename') and hero_image.filename:
-            import os
-            from pathlib import Path
-            upload_dir = Path("templet/static/uploads/hero")
-            upload_dir.mkdir(parents=True, exist_ok=True)
-            
-            filename = f"hero_{section_id}_{hero_image.filename}"
-            filepath = upload_dir / filename
-            content = await hero_image.read()
-            with open(filepath, 'wb') as f:
-                f.write(content)
-            extra_data['hero_image_url'] = f"/static/uploads/hero/{filename}"
+        
+        # Check if file was uploaded
+        image_uploaded = False
+        if hero_image:
+            try:
+                filename = hero_image.filename
+                print(f"DEBUG: Attempting to upload hero image, filename: {filename}")
+                if filename and filename.strip():
+                    import os
+                    from pathlib import Path
+                    upload_dir = Path("templet/static/uploads/hero")
+                    upload_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    # Generate filename with section ID
+                    file_ext = os.path.splitext(filename)[1]
+                    new_filename = f"hero_{section_id}{file_ext}"
+                    filepath = upload_dir / new_filename
+                    
+                    # Read and save file
+                    content = await hero_image.read()
+                    print(f"DEBUG: File content size: {len(content)} bytes")
+                    if content:
+                        with open(filepath, 'wb') as f:
+                            f.write(content)
+                        print(f"DEBUG: File saved to {filepath}")
+                        extra_data['hero_image_url'] = f"/static/uploads/hero/{new_filename}"
+                        print(f"DEBUG: Set hero_image_url to {extra_data['hero_image_url']}")
+                        image_uploaded = True
+            except Exception as e:
+                print(f"ERROR uploading hero image: {str(e)}")
+                import traceback
+                traceback.print_exc()
         
         # Keep existing image if no new one uploaded
-        if not hero_image or not hasattr(hero_image, 'filename') or not hero_image.filename:
-            if form.get("existing_hero_image"):
-                extra_data['hero_image_url'] = form.get("existing_hero_image")
+        if not image_uploaded:
+            existing_image = form.get("existing_hero_image")
+            if existing_image and existing_image.strip():
+                extra_data['hero_image_url'] = existing_image
+                print(f"DEBUG: Keeping existing image: {existing_image}")
         
         # Save other hero settings
         extra_data['hero_cta_text'] = form.get("hero_cta_text") or None
@@ -1330,9 +1365,23 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         extra_data['hero_text_color'] = form.get("hero_text_color") or "white"
         extra_data['hero_height'] = form.get("hero_height") or "medium"
     
+    # Update section
     section.extra_data = extra_data
-    db.add(section)
+    print(f"DEBUG: Final extra_data before save: {extra_data}")
+    
+    # Use explicit update to ensure JSON is saved
+    from sqlalchemy import update
+    stmt = update(PageSection).where(PageSection.id == section_id).values(
+        section_type=section.section_type,
+        section_title=section.section_title,
+        section_subtitle=section.section_subtitle,
+        sort_order=section.sort_order,
+        is_active=section.is_active,
+        extra_data=extra_data
+    )
+    db.execute(stmt)
     db.commit()
+    print(f"DEBUG: Section updated and committed")
     return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
 
 
