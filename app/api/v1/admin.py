@@ -1424,6 +1424,7 @@ def delete_section_item(request: Request, page_id: int, section_id: int, item_id
     return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
 
 @router.get("/pages/new", include_in_schema=False)
+@router.get("/page/new", include_in_schema=False)
 def new_page_form(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
@@ -1445,6 +1446,7 @@ def new_page_form(request: Request, db: Session = Depends(get_db)):
     )
 
 @router.post("/pages/new", include_in_schema=False)
+@router.post("/page/new", include_in_schema=False)
 async def create_page(request: Request, db: Session = Depends(get_db)):
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
