@@ -372,7 +372,7 @@
       <div class="property-group">
         <label class="property-label">Page Settings</label>
         <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: normal; font-size: 0.875rem;">
-          <input type="checkbox" id="isPublished" {{ 'checked' if page and page.is_published else '' }}>
+          <input type="checkbox" id="isActive" {{ 'checked' if page and page.is_active else '' }}>
           <span>Published</span>
         </label>
       </div>
@@ -426,7 +426,7 @@
   function savePage(event) {
     event.preventDefault();
     const title = document.getElementById('pageTitle').value.trim();
-    const isPublished = document.getElementById('isPublished').checked;
+    const isActive = document.getElementById('isActive').checked;
     
     if (!title) {
       alert('Please enter a page title');
@@ -441,9 +441,9 @@
     // Create and submit form using FormData for proper encoding
     const formData = new FormData();
     formData.append('title', title);
-    // Always append is_published with explicit true/false
-    const publishValue = isPublished ? '1' : '0';
-    formData.append('is_published', publishValue);
+    // Always append is_active with explicit true/false
+    const activeValue = isActive ? '1' : '0';
+    formData.append('is_active', activeValue);
     
     console.log('Saving page:', { pageId, title, isPublished, publishValue });
     

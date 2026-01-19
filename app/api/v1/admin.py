@@ -1456,7 +1456,8 @@ async def create_page(request: Request, db: Session = Depends(get_db)):
     title = form.get("title")
     slug_input = form.get("slug")
     college_id_form = form.get("college_id") or None
-    is_published = bool(form.get("is_published"))
+    is_active_value = form.get("is_active", "1")
+    is_active = is_active_value in ('1', 'on', 'true', True)
     is_inheritable = bool(form.get("is_inheritable"))
     
     # Generate slug from title if not provided
@@ -1474,7 +1475,7 @@ async def create_page(request: Request, db: Session = Depends(get_db)):
         title=title, 
         slug=slug, 
         college_id=int(college_id_form) if college_id_form else None,
-        is_published=is_published,
+        is_active=is_active,
         is_inheritable=is_inheritable
     )
     db.add(page)
@@ -1577,11 +1578,9 @@ async def update_page(request: Request, page_id: int, db: Session = Depends(get_
     
     college_id_form = form.get("college_id") or None
     page.college_id = int(college_id_form) if college_id_form else None
-    # Handle is_published properly - check if value is '1' or 'on'
-    is_published_value = form.get("is_published", "0")
-    print(f"DEBUG: is_published_value = {repr(is_published_value)}, type = {type(is_published_value)}")
-    page.is_published = is_published_value in ('1', 'on', 'true', True)
-    print(f"DEBUG: page.is_published = {page.is_published}")
+    # Handle is_active properly - check if value is '1' or 'on'
+    is_active_value = form.get("is_active", "0")
+    page.is_active = is_active_value in ('1', 'on', 'true', True)
     page.is_inheritable = bool(form.get("is_inheritable"))
 
     # update or create SEO meta

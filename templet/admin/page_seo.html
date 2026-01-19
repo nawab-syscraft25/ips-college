@@ -438,11 +438,14 @@
     <a href="/admin/pages?college_id={{ selected_college_id }}" class="btn btn-secondary">
       <i class="fas fa-arrow-left"></i> Back to Pages
     </a>
-    <button class="btn btn-primary" onclick="saveSEO()">
+    <button class="btn btn-primary" id="saveSEOBtn" type="button">
       <i class="fas fa-save"></i> Save SEO Settings
     </button>
   </div>
 </div>
+
+<script>
+  document.getElementById('saveSEOBtn')?.addEventListener('click', saveSEO);
 
 <script>
   // Character counters
@@ -488,8 +491,59 @@
       document.getElementById('metaDescription').value || 'Your meta description appears here';
   }
   
-  function saveSEO() {
-    alert('SEO settings saved!\n\nAPI integration needed in routes');
+  function saveSEO(event) {
+    const formData = new FormData();
+    
+    // Collect all form fields
+    formData.append('meta_title', document.getElementById('metaTitle')?.value || '');
+    formData.append('meta_description', document.getElementById('metaDescription')?.value || '');
+    formData.append('focus_keyword', document.getElementById('focusKeyword')?.value || '');
+    formData.append('canonical_url', document.getElementById('canonicalUrl')?.value || '');
+    formData.append('og_title', document.getElementById('ogTitle')?.value || '');
+    formData.append('og_description', document.getElementById('ogDescription')?.value || '');
+    formData.append('og_image', document.getElementById('ogImage')?.value || '');
+    
+    // Get page ID from URL
+    const pageId = window.location.pathname.split('/').filter(p => p)[2]; // /admin/page/{page_id}/seo
+    const collegeId = new URLSearchParams(window.location.search).get('college_id') || '';
+    
+    if (!pageId) {
+      alert('Error: Page ID not found');
+      return;
+    }
+    
+    const submitBtn = event.currentTarget;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    const url = `/admin/page/${pageId}/seo?college_id=${collegeId}`;
+    
+    fetch(url, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (response.ok || response.status === 303) {
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+        setTimeout(() => {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }, 2000);
+        // Optionally refresh the page to show updated values
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        throw new Error('Save failed with status ' + response.status);
+      }
+    })
+    .catch(error => {
+      console.error('Save error:', error);
+      alert('Failed to save SEO settings: ' + error.message);
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    });
   }
   
   // Initialize checklist

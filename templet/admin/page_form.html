@@ -201,8 +201,8 @@
     {% if action == 'edit' and page %}
     <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
       <div>
-        <span class="page-status {% if page.is_published %}status-published{% else %}status-draft{% endif %}">
-          {{ 'Published' if page.is_published else 'Draft' }}
+        <span class="page-status {% if page.is_active %}status-published{% else %}status-draft{% endif %}">
+          {{ 'Published' if page.is_active else 'Draft' }}
         </span>
         <small style="color: #6b7280; margin-left: 1rem;">
           Created: {{ page.created_at.strftime('%B %d, %Y') if page.created_at else 'N/A' }}
@@ -260,9 +260,9 @@
       <h3 class="form-section-title">📢 Publishing Options</h3>
       
       <div class="checkbox-group">
-        <input type="checkbox" id="isPublished" name="is_published" value="on"
-               {% if page and page.is_published %}checked{% endif %}>
-        <label for="isPublished"><strong>Publish this page</strong> (make it live on website)</label>
+        <input type="checkbox" id="isActive" name="is_active" value="1"
+               {% if page and page.is_active %}checked{% endif %}>
+        <label for="isActive"><strong>Publish this page</strong> (make it live on website)</label>
       </div>
       
       {% if action == 'edit' and page %}
