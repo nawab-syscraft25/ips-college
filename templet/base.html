@@ -400,7 +400,7 @@
         <select id="collegeSelector" class="college-selector">
           <option value="">-- Select College --</option>
           {% for college in colleges %}
-          <option value="{{ college.id }}" {% if college.id == selected_college_id|int or (selected_college_id and college.id|string == selected_college_id|string) %}selected{% endif %}>
+          <option value="{{ college.id }}" {% if selected_college_id and (college.id == selected_college_id|int or college.id|string == selected_college_id|string) %}selected{% endif %}>
             {{ college.name }}
           </option>
           {% endfor %}

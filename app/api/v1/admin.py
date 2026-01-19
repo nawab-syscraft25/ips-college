@@ -72,6 +72,8 @@ def admin_index(request: Request, db: Session = Depends(get_db)):
     # make sure we always have at least one admin user
     _ensure_default_admin(db)
     colleges = db.query(College).order_by(College.id.desc()).all()
+    college_id = request.query_params.get("college_id")
+    
     pages = db.query(Page).order_by(Page.id.desc()).all()
 
     # Dashboard stats
@@ -110,6 +112,7 @@ def admin_index(request: Request, db: Session = Depends(get_db)):
             "subtitle": "Welcome back to IPS Academy Admin Panel",
             "stats": stats,
             "recent_applications": recent_apps,
+            "selected_college_id": college_id or "",
         },
     )
 
