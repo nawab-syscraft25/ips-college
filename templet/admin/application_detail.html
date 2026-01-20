@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Back Link -->
+            <div class="mb-4">
+                <a href="/admin/applications" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Back to Applications
+                </a>
+            </div>
+
+            <!-- Application Header -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Application #{{ application.id }}</h4>
+                    <span class="badge badge-{% if application.status == 'approved' %}success{% elif application.status == 'rejected' %}danger{% elif application.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                        {{ application.status or 'pending' }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Applicant Name</h6>
+                            <p class="h5">{{ application.name or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Email</h6>
+                            <p class="h5">
+                                <a href="mailto:{{ application.email }}">{{ application.email or '-' }}</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Phone</h6>
+                            <p class="h5">
+                                <a href="tel:{{ application.phone }}">{{ application.phone or '-' }}</a>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Applied Date</h6>
+                            <p class="h5">{{ application.created_at.strftime("%b %d, %Y") if application.created_at else '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course & College Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Course & College Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">College</h6>
+                            <p class="h5">{{ college.name or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Applied Course</h6>
+                            <p class="h5">{{ course.name or '-' }}</p>
+                        </div>
+                    </div>
+                    {% if course %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Course Level</h6>
+                            <p>{{ course.level or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Department</h6>
+                            <p>{{ course.department or '-' }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Documents -->
+            {% if application.documents %}
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Submitted Documents</h5>
+                </div>
+                <div class="card-body">
+                    {% if application.documents is string %}
+                        <p>{{ application.documents }}</p>
+                    {% else %}
+                        <ul class="list-group">
+                            {% for doc in application.documents %}
+                            <li class="list-group-item">{{ doc }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Status Update -->
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/admin/applications/{{ application.id }}/status">
+                        <div class="form-group">
+                            <label for="status">Application Status</label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="pending" {% if application.status == 'pending' or not application.status %}selected{% endif %}>Pending Review</option>
+                                <option value="approved" {% if application.status == 'approved' %}selected{% endif %}>Approved</option>
+                                <option value="rejected" {% if application.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                <option value="on_hold" {% if application.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Status
+                            </button>
+                            <a href="/admin/applications" class="btn btn-secondary ml-2">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Quick Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Quick Info</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Application ID</small>
+                        <strong>{{ application.id }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Current Status</small>
+                        <span class="badge badge-{% if application.status == 'approved' %}success{% elif application.status == 'rejected' %}danger{% elif application.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                            {{ application.status or 'pending' }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Submitted</small>
+                        <strong>{{ application.created_at.strftime("%b %d, %Y %I:%M %p") if application.created_at else '-' }}</strong>
+                    </div>
+                    {% if college %}
+                    <div class="mb-3">
+                        <small class="text-muted d-block">College</small>
+                        <strong>{{ college.name }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="/admin/applications" class="btn btn-block btn-outline-secondary mb-2">
+                        <i class="fas fa-list"></i> View All Applications
+                    </a>
+                    {% if college %}
+                    <a href="/admin/applications?college_id={{ college.id }}" class="btn btn-block btn-outline-info mb-2">
+                        <i class="fas fa-filter"></i> Filter by College
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-success { background-color: #28a745 !important; color: white !important; }
+    .badge-danger { background-color: #dc3545 !important; color: white !important; }
+    .badge-warning { background-color: #ffc107 !important; color: black !important; }
+    .badge-secondary { background-color: #6c757d !important; color: white !important; }
+</style>
+{% endblock %}

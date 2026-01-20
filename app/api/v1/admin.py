@@ -72,17 +72,33 @@ def admin_index(request: Request, db: Session = Depends(get_db)):
         return _require_login(request)
     # make sure we always have at least one admin user
     _ensure_default_admin(db)
+    
     colleges = db.query(College).order_by(College.id.desc()).all()
     college_id = request.query_params.get("college_id")
     
     pages = db.query(Page).order_by(Page.id.desc()).all()
 
+    # Add counts to colleges
+    for college in colleges:
+        college.pages_count = db.query(Page).filter(Page.college_id == college.id).count()
+        college.courses_count = db.query(Course).filter(Course.college_id == college.id).count()
+        college.faculty_count = db.query(Faculty).filter(Faculty.college_id == college.id).count()
+
+    # Add college info to pages
+    for page in pages:
+        if page.college_id:
+            page.college_name = db.query(College).filter(College.id == page.college_id).first().name
+        else:
+            page.college_name = None
+
     # Dashboard stats
     stats = {
-        "colleges": db.query(College).count(),
-        "faculty": db.query(Faculty).count(),
-        "applications": db.query(Application).count(),
-        "enquiries": db.query(Enquiry).count(),
+        "total_colleges": db.query(College).count(),
+        "total_faculty": db.query(Faculty).count(),
+        "total_applications": db.query(Application).count(),
+        "total_pages": db.query(Page).count(),
+        "total_courses": db.query(Course).count(),
+        "total_enquiries": db.query(Enquiry).count(),
     }
 
     # Recent applications (most recent 5)
@@ -95,9 +111,10 @@ def admin_index(request: Request, db: Session = Depends(get_db)):
             program = course.name if course else "-"
         recent_apps.append(
             {
+                "id": a.id,
                 "name": a.name,
-                "program": program or "-",
-                "status": a.status or "",
+                "course_name": program or "-",
+                "status": a.status or "pending",
                 "applied_at": a.created_at.strftime("%b %d, %Y") if a.created_at else "",
                 "view_url": f"/admin/applications/{a.id}" ,
             }
@@ -109,8 +126,8 @@ def admin_index(request: Request, db: Session = Depends(get_db)):
             "request": request,
             "colleges": colleges,
             "pages": pages,
-            "title": "Dashboard",
-            "subtitle": "Welcome back to IPS Academy Admin Panel",
+            # "title": "Dashboard",
+            # "subtitle": "Welcome back to IPS Academy Admin Panel",
             "stats": stats,
             "recent_applications": recent_apps,
             "selected_college_id": college_id or "",
@@ -1021,6 +1038,26 @@ def list_applications(request: Request, db: Session = Depends(get_db)):
             selected_college_id = None
     applications = q.all()
     return templates.TemplateResponse("admin/applications.html", {"request": request, "applications": applications, "colleges": colleges, "selected_college_id": selected_college_id})
+
+
+@router.get("/applications/{app_id}", include_in_schema=False)
+def view_application(request: Request, app_id: int, db: Session = Depends(get_db)):
+    if isinstance(_require_login(request), RedirectResponse):
+        return _require_login(request)
+    app = db.query(Application).filter(Application.id == app_id).first()
+    if not app:
+        return RedirectResponse(url="/admin/applications", status_code=303)
+    
+    # Get college and course info
+    college = db.query(College).filter(College.id == app.college_id).first() if app.college_id else None
+    course = db.query(Course).filter(Course.id == app.course_id).first() if app.course_id else None
+    
+    return templates.TemplateResponse("admin/application_detail.html", {
+        "request": request,
+        "application": app,
+        "college": college,
+        "course": course,
+    })
 
 
 @router.post("/applications/{app_id}/status", include_in_schema=False)

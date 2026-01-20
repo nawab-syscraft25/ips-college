@@ -265,10 +265,10 @@
       <div class="form-group">
         <label class="form-label">Meta Title (Title Tag) *</label>
         <input type="text" class="form-control" id="metaTitle" maxlength="60" 
-               value="{{ page.seo.meta_title if page and page.seo else page.title if page else '' }}"
+               value="{{ (page.seo.meta_title or page.title or '')|default('', true) if page else '' }}"
                placeholder="Keep it under 60 characters">
         <div class="hint-text">
-          <span id="titleCount">{{ page.seo.meta_title|length if page and page.seo else 0 }}</span>/60 characters
+          <span id="titleCount">{{ (page.seo.meta_title or '')|length if page and page.seo else 0 }}</span>/60 characters
           <span id="titleStatus" style="margin-left: 1rem; color: #6b7280;">Good length</span>
         </div>
       </div>
@@ -277,9 +277,9 @@
       <div class="form-group">
         <label class="form-label">Meta Description *</label>
         <textarea class="form-control" id="metaDescription" maxlength="160" 
-                  placeholder="Describe your page in 150-160 characters">{{ page.seo.meta_description if page and page.seo else '' }}</textarea>
+                  placeholder="Describe your page in 150-160 characters">{{ (page.seo.meta_description or '')|default('', true) if page and page.seo else '' }}</textarea>
         <div class="hint-text">
-          <span id="descCount">{{ page.seo.meta_description|length if page and page.seo else 0 }}</span>/160 characters
+          <span id="descCount">{{ (page.seo.meta_description or '')|length if page and page.seo else 0 }}</span>/160 characters
           <span id="descStatus" style="margin-left: 1rem; color: #6b7280;">Good length</span>
         </div>
       </div>
@@ -288,7 +288,7 @@
       <div class="form-group">
         <label class="form-label">Focus Keyword *</label>
         <input type="text" class="form-control" id="focusKeyword" 
-               value="{{ page.seo.focus_keyword if page and page.seo else '' }}"
+               value="{{ (page.seo.focus_keyword or '')|default('', true) if page and page.seo else '' }}"
                placeholder="e.g., best engineering college in Delhi">
         <div class="hint-text">Enter 1-3 words you want to rank for</div>
       </div>
@@ -299,8 +299,8 @@
         <input type="text" class="form-control" id="keywordsInput" 
                placeholder="Type and press Enter to add keywords">
         <div class="keyword-tags" id="keywordsList" style="margin-top: 1rem;">
-          {% if page and page.seo and page.seo.keywords %}
-            {% for keyword in page.seo.keywords.split(',') %}
+          {% if page and page.seo and page.seo.meta_keywords %}
+            {% for keyword in page.seo.meta_keywords.split(',') %}
             <div class="keyword-tag">
               {{ keyword.strip() }}
               <button type="button" onclick="removeKeyword(this)">×</button>
@@ -314,7 +314,7 @@
       <div class="form-group">
         <label class="form-label">Page URL Slug</label>
         <input type="text" class="form-control" id="urlSlug" 
-               value="{{ page.slug if page else '' }}"
+               value="{{ (page.slug or '')|default('', true) if page else '' }}"
                placeholder="auto-generated-page-slug">
         <div class="hint-text">Automatically generated from title</div>
       </div>
@@ -323,7 +323,7 @@
       <div class="form-group">
         <label class="form-label">Canonical URL</label>
         <input type="url" class="form-control" id="canonicalUrl" 
-               value="{{ page.seo.canonical_url if page and page.seo else '' }}"
+               value="{{ (page.seo.canonical_url or '')|default('', true) if page and page.seo else '' }}"
                placeholder="https://yourdomain.com/page">
         <div class="hint-text">Leave blank to auto-generate</div>
       </div>
@@ -335,37 +335,33 @@
         <div class="form-group">
           <label class="form-label">OG Title</label>
           <input type="text" class="form-control" id="ogTitle" maxlength="50"
-                 value="{{ page.seo.og_title if page and page.seo else '' }}"
+                 value="{{ (page.seo.og_title or '')|default('', true) if page and page.seo else '' }}"
                  placeholder="Title for social sharing">
         </div>
 
         <div class="form-group">
           <label class="form-label">OG Description</label>
           <textarea class="form-control" id="ogDescription" maxlength="160"
-                    placeholder="Description for social sharing">{{ page.seo.og_description if page and page.seo else '' }}</textarea>
+                    placeholder="Description for social sharing">{{ (page.seo.og_description or '')|default('', true) if page and page.seo else '' }}</textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label">OG Image URL</label>
           <input type="url" class="form-control" id="ogImage" 
-                 value="{{ page.seo.og_image if page and page.seo else '' }}"
+                 value="{{ (page.seo.og_image or '')|default('', true) if page and page.seo else '' }}"
                  placeholder="https://yourdomain.com/image.jpg">
         </div>
       </div>
 
-      <!-- Search Console -->
+      <!-- Schema JSON -->
       <div style="padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-        <h4 style="font-weight: 600; color: var(--dark); margin-bottom: 1rem;">Indexing</h4>
+        <h4 style="font-weight: 600; color: var(--dark); margin-bottom: 1rem;">Schema Markup (JSON-LD)</h4>
         
-        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-          <input type="checkbox" id="indexable" {{ 'checked' if not page or page.seo and not page.seo.no_index else '' }}>
-          <span>Allow search engines to index this page</span>
-        </label>
-        
-        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-top: 0.75rem;">
-          <input type="checkbox" id="followLinks" {{ 'checked' if not page or page.seo and not page.seo.no_follow else '' }}>
-          <span>Allow search engines to follow links on this page</span>
-        </label>
+        <div class="form-group">
+          <label class="form-label">Schema JSON</label>
+          <textarea class="form-control" id="schemaJson" style="font-family: monospace; font-size: 0.85rem;" placeholder="{&#10;  \"@context\": \"https://schema.org\",&#10;  \"@type\": \"Organization\"&#10;}">{{ (page.seo.schema_json|tojson if page.seo.schema_json else '')|default('', true) if page and page.seo else '' }}</textarea>
+          <div class="hint-text">Optional JSON-LD schema markup for rich snippets in search results</div>
+        </div>
       </div>
     </form>
   </div>
@@ -378,9 +374,9 @@
     </div>
     
     <div class="preview-box">
-      <div class="preview-title" id="previewTitle">{{ page.seo.meta_title if page and page.seo else page.title if page else 'Your Page Title' }}</div>
-      <div class="preview-url">{{ domain if domain else 'ipsacademy.edu.in' }}/{{ page.slug if page else 'your-page' }}</div>
-      <div class="preview-description" id="previewDesc">{{ page.seo.meta_description if page and page.seo else 'Your meta description appears here' }}</div>
+      <div class="preview-title" id="previewTitle">{{ (page.seo.meta_title or page.title or 'Your Page Title')|default('Your Page Title', true) if page else 'Your Page Title' }}</div>
+      <div class="preview-url">{{ domain if domain else 'ipsacademy.edu.in' }}/{{ (page.slug or 'your-page')|default('your-page', true) if page else 'your-page' }}</div>
+      <div class="preview-description" id="previewDesc">{{ (page.seo.meta_description or 'Your meta description appears here')|default('Your meta description appears here', true) if page and page.seo else 'Your meta description appears here' }}</div>
     </div>
   </div>
 
@@ -445,17 +441,30 @@
   </div>
 </div>
 <script>
-  document.getElementById('saveSEOBtn')?.addEventListener('click', saveSEO);
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeChecklist();
+    updatePreview();
+    document.getElementById('saveSEOBtn')?.addEventListener('click', saveSEO);
+  });
 
   // Character counters
   document.getElementById('metaTitle')?.addEventListener('input', function() {
     document.getElementById('titleCount').textContent = this.value.length;
+    const status = this.value.length === 0 ? 'Enter title' : 
+                   this.value.length < 30 ? 'Too short' : 
+                   this.value.length > 60 ? 'Too long' : 'Good length';
+    document.getElementById('titleStatus').textContent = status;
     document.getElementById('check-title').classList.toggle('done', this.value.length > 0);
     updatePreview();
   });
   
   document.getElementById('metaDescription')?.addEventListener('input', function() {
     document.getElementById('descCount').textContent = this.value.length;
+    const status = this.value.length === 0 ? 'Enter description' : 
+                   this.value.length < 120 ? 'Too short' : 
+                   this.value.length > 160 ? 'Too long' : 'Good length';
+    document.getElementById('descStatus').textContent = status;
     document.getElementById('check-description').classList.toggle('done', this.value.length > 0);
     updatePreview();
   });
@@ -479,35 +488,109 @@
     }
   });
   
+  // Delete keyword by clicking outside or pressing delete
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      const focused = document.activeElement;
+      if (focused && focused.classList.contains('keyword-tag')) {
+        focused.remove();
+      }
+    }
+  });
+  
   function removeKeyword(btn) {
     btn.parentElement.remove();
   }
   
+  function getKeywordsArray() {
+    const keywordElements = document.querySelectorAll('.keyword-tag');
+    return Array.from(keywordElements).map(el => {
+      return el.textContent.replace('×', '').trim();
+    });
+  }
+  
   function updatePreview() {
-    document.getElementById('previewTitle').textContent = 
-      document.getElementById('metaTitle').value || 'Your Page Title';
-    document.getElementById('previewDesc').textContent = 
-      document.getElementById('metaDescription').value || 'Your meta description appears here';
+    const title = document.getElementById('metaTitle')?.value || 'Your Page Title';
+    const desc = document.getElementById('metaDescription')?.value || 'Your meta description appears here';
+    document.getElementById('previewTitle').textContent = title;
+    document.getElementById('previewDesc').textContent = desc;
+  }
+  
+  function initializeChecklist() {
+    // Check meta title
+    const titleVal = document.getElementById('metaTitle')?.value || '';
+    document.getElementById('check-title').classList.toggle('done', titleVal.length > 0);
+    
+    // Check meta description
+    const descVal = document.getElementById('metaDescription')?.value || '';
+    document.getElementById('check-description').classList.toggle('done', descVal.length > 0);
+    
+    // Check focus keyword
+    const keywordVal = document.getElementById('focusKeyword')?.value || '';
+    document.getElementById('check-keyword').classList.toggle('done', keywordVal.length > 0);
+    
+    // Check if mobile optimized (always true)
+    document.getElementById('check-mobile').classList.add('done');
+    
+    // Character counter initialization
+    document.getElementById('titleCount').textContent = titleVal.length;
+    document.getElementById('descCount').textContent = descVal.length;
   }
   
   function saveSEO(event) {
+    // Validate required fields
+    const metaTitle = document.getElementById('metaTitle')?.value?.trim() || '';
+    const metaDesc = document.getElementById('metaDescription')?.value?.trim() || '';
+    const focusKeyword = document.getElementById('focusKeyword')?.value?.trim() || '';
+    
+    if (!metaTitle) {
+      alert('Please enter a Meta Title');
+      return;
+    }
+    if (!metaDesc) {
+      alert('Please enter a Meta Description');
+      return;
+    }
+    if (!focusKeyword) {
+      alert('Please enter a Focus Keyword');
+      return;
+    }
+    
     const formData = new FormData();
     
     // Collect all form fields
-    formData.append('meta_title', document.getElementById('metaTitle')?.value || '');
-    formData.append('meta_description', document.getElementById('metaDescription')?.value || '');
-    formData.append('focus_keyword', document.getElementById('focusKeyword')?.value || '');
+    formData.append('meta_title', metaTitle);
+    formData.append('meta_description', metaDesc);
+    formData.append('focus_keyword', focusKeyword);
+    
+    // Collect keywords
+    const keywords = getKeywordsArray();
+    formData.append('meta_keywords', keywords.join(','));
+    
     formData.append('canonical_url', document.getElementById('canonicalUrl')?.value || '');
     formData.append('og_title', document.getElementById('ogTitle')?.value || '');
     formData.append('og_description', document.getElementById('ogDescription')?.value || '');
     formData.append('og_image', document.getElementById('ogImage')?.value || '');
     
+    // Collect schema JSON
+    const schemaJson = document.getElementById('schemaJson')?.value?.trim();
+    if (schemaJson) {
+      try {
+        // Validate JSON
+        JSON.parse(schemaJson);
+        formData.append('schema_json', schemaJson);
+      } catch (e) {
+        console.warn('Invalid JSON in schema field');
+      }
+    }
+    
     // Get page ID from URL
-    const pageId = window.location.pathname.split('/').filter(p => p)[2]; // /admin/page/{page_id}/seo
+    const pathParts = window.location.pathname.split('/').filter(p => p);
+    const pageId = pathParts[2]; // /admin/page/{page_id}/seo
     const collegeId = new URLSearchParams(window.location.search).get('college_id') || '';
     
     if (!pageId) {
-      alert('Error: Page ID not found');
+      alert('Error: Page ID not found in URL');
       return;
     }
     
@@ -529,10 +612,14 @@
           submitBtn.innerHTML = originalText;
           submitBtn.disabled = false;
         }, 2000);
-        // Optionally refresh the page to show updated values
+        // Refresh the page to show updated values
         setTimeout(() => {
           location.reload();
-        }, 1000);
+        }, 1500);
+      } else if (response.status === 400) {
+        return response.json().then(data => {
+          throw new Error(data.detail || 'Validation error');
+        });
       } else {
         throw new Error('Save failed with status ' + response.status);
       }
@@ -544,8 +631,5 @@
       submitBtn.disabled = false;
     });
   }
-  
-  // Initialize checklist
-  updatePreview();
 </script>
 {% endblock %}
