@@ -189,6 +189,7 @@
     <thead>
       <tr>
         <th>Page Title</th>
+        <th>College</th>
         <th>Slug</th>
         <th>Status</th>
         <th>Sections</th>
@@ -203,6 +204,15 @@
           <strong>{{ page.title }}</strong>
           {% if page.parent_page_id %}<br><small style="color: #6b7280;">↳ Inherited from parent</small>{% endif %}
         </td>
+        <td>
+          {% if page.college %}
+            <span style="background: #dbeafe; padding: 0.375rem 0.75rem; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 500; color: #1e40af;">
+              {{ page.college.name }}
+            </span>
+          {% else %}
+            <span style="color: #9ca3af; font-size: 0.875rem;">—</span>
+          {% endif %}
+        </td>
         <td><code style="background: var(--light); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem;">{{ page.slug }}</code></td>
         <td>
           <span class="page-status {{ 'status-published' if page.is_active else 'status-draft' }}">
@@ -213,14 +223,17 @@
         <td><small style="color: #6b7280;">{{ page.updated_at.strftime('%b %d, %Y') if page.updated_at else 'N/A' }}</small></td>
         <td>
           <div class="page-actions-cell">
-            <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" class="action-btn" title="Design/Edit">
-              <i class="fas fa-edit"></i> Design
+            <a href="/admin/pages/{{ page.id }}/edit?college_id={{ selected_college_id }}" class="action-btn" title="Edit Page Properties">
+              <i class="fas fa-cog"></i> Edit
+            </a>
+            <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" class="action-btn" title="Design Sections">
+              <i class="fas fa-paint-brush"></i> Design
             </a>
             <a href="/admin/page/{{ page.id }}/seo?college_id={{ selected_college_id }}" class="action-btn" title="SEO Settings">
               <i class="fas fa-search"></i> SEO
             </a>
-            <a href="/admin/page/{{ page.id }}/delete?college_id={{ selected_college_id }}" class="action-btn delete" onclick="return confirm('Delete this page?')" title="Delete">
-              <i class="fas fa-trash"></i>
+            <a href="/admin/pages/{{ page.id }}/delete?college_id={{ selected_college_id }}" class="action-btn delete" onclick="return confirm('Delete this page?')" title="Delete Page">
+              <i class="fas fa-trash"></i> Delete
             </a>
           </div>
         </td>
@@ -266,13 +279,16 @@
         </div>
       </div>
       <div class="page-card-actions">
-        <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" class="action-btn">
-          <i class="fas fa-edit"></i> Design
+        <a href="/admin/pages/{{ page.id }}/edit?college_id={{ selected_college_id }}" class="action-btn" title="Edit Properties">
+          <i class="fas fa-cog"></i> Edit
         </a>
-        <a href="/admin/page/{{ page.id }}/seo?college_id={{ selected_college_id }}" class="action-btn">
+        <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" class="action-btn" title="Design Sections">
+          <i class="fas fa-paint-brush"></i> Design
+        </a>
+        <a href="/admin/page/{{ page.id }}/seo?college_id={{ selected_college_id }}" class="action-btn" title="SEO Settings">
           <i class="fas fa-search"></i> SEO
         </a>
-        <a href="/admin/page/{{ page.id }}/delete?college_id={{ selected_college_id }}" class="action-btn delete" onclick="return confirm('Delete?')">
+        <a href="/admin/page/{{ page.id }}/delete?college_id={{ selected_college_id }}" class="action-btn delete" onclick="return confirm('Delete?')" title="Delete">
           <i class="fas fa-trash"></i>
         </a>
       </div>

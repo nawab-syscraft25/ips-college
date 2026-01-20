@@ -3,75 +3,221 @@
 {% block content %}
 <style>
   .form-container {
-    max-width: 900px;
+    max-width: 950px;
     margin: 0 auto;
   }
-  
+
+  .form-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  .form-header-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .form-header-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .form-header-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .status-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
   .form-card {
     background: white;
     border-radius: 0.75rem;
     padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
   }
-  
+
+  .form-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
   .form-section-title {
     font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--dark);
+    font-weight: 700;
+    color: #1f2937;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
-  
+
   .form-group {
     margin-bottom: 1.5rem;
   }
-  
+
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+
   .form-label {
     display: block;
     font-weight: 600;
-    color: var(--dark);
+    color: #1f2937;
     margin-bottom: 0.5rem;
     font-size: 0.875rem;
   }
-  
+
+  .required-indicator {
+    color: #ef4444;
+    font-weight: bold;
+  }
+
   .form-control {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #d1d5db;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     font-family: inherit;
+    background: white;
+    transition: all 0.2s;
   }
-  
+
   .form-control:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
-  
+
+  .form-control:hover {
+    border-color: #9ca3af;
+  }
+
   textarea.form-control {
     resize: vertical;
     min-height: 120px;
+    font-family: inherit;
   }
-  
+
   .hint-text {
     font-size: 0.75rem;
     color: #6b7280;
-    margin-top: 0.25rem;
+    margin-top: 0.375rem;
+    display: block;
   }
-  
+
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
   }
-  
+
   .form-row.full {
     grid-template-columns: 1fr;
   }
-  
+
+  .form-row.three {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .slug-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .slug-preview-label {
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .slug-preview-value {
+    color: #3b82f6;
+    font-family: monospace;
+    font-weight: 600;
+  }
+
+  /* Checkbox Groups */
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+  }
+
+  .checkbox-group:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+
+  .checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+  }
+
+  .checkbox-group label {
+    cursor: pointer;
+    margin: 0;
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .checkbox-group-description {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-left: 2.25rem;
+  }
+
+  /* Badges */
+  .page-status {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .status-published {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-draft {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  /* Buttons */
   .button-group {
     display: flex;
     gap: 1rem;
@@ -79,197 +225,313 @@
     margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 2px solid #e5e7eb;
+    flex-wrap: wrap;
   }
-  
+
   .btn {
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 0.5rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.875rem;
+    white-space: nowrap;
   }
-  
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .btn-primary {
-    background: var(--primary);
+    background: #3b82f6;
     color: white;
   }
-  
-  .btn-primary:hover {
-    background: var(--primary-dark);
+
+  .btn-primary:hover:not(:disabled) {
+    background: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   }
-  
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
   .btn-secondary {
     background: white;
-    border: 1px solid #e5e7eb;
-    color: var(--dark);
+    border: 1.5px solid #d1d5db;
+    color: #1f2937;
   }
-  
+
   .btn-secondary:hover {
-    background: var(--light);
+    background: #f9fafb;
+    border-color: #9ca3af;
   }
-  
+
   .btn-danger {
-    background: var(--danger);
+    background: #ef4444;
     color: white;
   }
-  
-  .btn-danger:hover {
+
+  .btn-danger:hover:not(:disabled) {
     background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
   }
-  
-  .checkbox-group {
+
+  /* Divider */
+  .form-divider {
+    margin: 2rem 0;
+    border: none;
+    border-top: 2px solid #e5e7eb;
+  }
+
+  .divider-label {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: var(--light);
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 0.5rem;
   }
-  
-  .checkbox-group input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-  
-  .checkbox-group label {
-    cursor: pointer;
-    margin: 0;
-    font-weight: normal;
-  }
-  
-  .page-status {
-    display: inline-block;
-    padding: 0.375rem 0.75rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-  
-  .status-published {
-    background: #dcfce7;
-    color: #166534;
-  }
-  
-  .status-draft {
-    background: #fef3c7;
-    color: #92400e;
-  }
-  
+
+  /* Quick Actions */
   .quick-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
   }
-  
+
+  .quick-action-btn {
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    text-align: center;
+    color: #1f2937;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .quick-action-btn:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    transform: translateY(-2px);
+  }
+
+  .quick-action-icon {
+    font-size: 1.5rem;
+  }
+
+  /* Responsive */
   @media (max-width: 768px) {
-    .form-row {
+    .form-container {
+      padding: 0 1rem;
+    }
+
+    .form-card {
+      padding: 1.5rem;
+    }
+
+    .form-row,
+    .form-row.three {
       grid-template-columns: 1fr;
     }
-    
+
     .button-group {
-      flex-direction: column;
+      flex-direction: column-reverse;
     }
-    
+
     .btn {
       width: 100%;
+      justify-content: center;
     }
-    
+
+    .form-header-meta {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
     .quick-actions {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* Success/Error Messages */
+  .alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .alert-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+  }
+
+  .alert-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+  }
+
+  .alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
   }
 </style>
 
 <div class="form-container">
   <!-- Page Header -->
-  <div class="form-card">
-    <h2 class="form-section-title">
+  <div class="form-header">
+    <h1 class="form-header-title">
       {% if action == 'edit' and page %}
-      ✏️ Edit Page: {{ page.title }}
+      ✏️ Edit Page
       {% else %}
       ➕ Create New Page
       {% endif %}
-    </h2>
-    
+    </h1>
+    <p class="form-header-subtitle">
+      {% if action == 'edit' and page %}
+      Update page settings, content, and SEO metadata
+      {% else %}
+      Start by entering basic page information below
+      {% endif %}
+    </p>
+
     {% if action == 'edit' and page %}
-    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
-      <div>
+    <div class="form-header-meta">
+      <div class="status-info">
         <span class="page-status {% if page.is_active %}status-published{% else %}status-draft{% endif %}">
           {{ 'Published' if page.is_active else 'Draft' }}
         </span>
-        <small style="color: #6b7280; margin-left: 1rem;">
+        <small style="color: #6b7280;">
           Created: {{ page.created_at.strftime('%B %d, %Y') if page.created_at else 'N/A' }}
         </small>
       </div>
       <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" class="btn btn-primary">
-        🎨 Go to Designer
+        🎨 Open Designer
       </a>
     </div>
     {% endif %}
   </div>
 
-  <!-- Basic Information -->
-  <form method="post" action="{% if action == 'edit' %}/admin/pages/{{ page.id }}/edit{% else %}/admin/pages/new{% endif %}?college_id={{ selected_college_id }}">
+  <!-- Main Form -->
+  <form method="post" action="{% if action == 'edit' %}/admin/pages/{{ page.id }}/edit{% else %}/admin/pages/new{% endif %}?college_id={{ selected_college_id }}" novalidate>
+    
+    <!-- Page Information Section -->
     <div class="form-card">
-      <h3 class="form-section-title">📄 Page Information</h3>
-      
+      <h3 class="form-section-title">
+        📄 Page Information
+      </h3>
+
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Page Title *</label>
-          <input type="text" class="form-control" name="title" required 
-                 value="{{ page.title if page else '' }}"
-                 placeholder="e.g., About Our College">
-          <div class="hint-text">Main heading for this page</div>
+          <label class="form-label">
+            Page Title
+            <span class="required-indicator">*</span>
+          </label>
+          <input 
+            type="text" 
+            class="form-control" 
+            name="title" 
+            required 
+            value="{{ page.title if page else '' }}"
+            placeholder="e.g., About Our College"
+            maxlength="100"
+            autocomplete="off">
+          <span class="hint-text">The main heading displayed on the page (required)</span>
         </div>
-        
+
         <div class="form-group">
-          <label class="form-label">College *</label>
+          <label class="form-label">
+            College
+            <span class="required-indicator">*</span>
+          </label>
           <select name="college_id" class="form-control" required>
             <option value="">-- Select College --</option>
             {% for c in colleges %}
-            <option value="{{ c.id }}" {% if page and page.college_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+            <option value="{{ c.id }}" {% if page and page.college_id == c.id %}selected{% endif %}>
+              {{ c.name }}
+            </option>
             {% endfor %}
           </select>
-          <div class="hint-text">Which college this page belongs to</div>
+          <span class="hint-text">Which college/institution this page belongs to</span>
         </div>
       </div>
-      
+
       <div class="form-group">
         <label class="form-label">URL Slug</label>
-        <div style="display: flex; gap: 0.5rem;">
-          <input type="text" class="form-control" name="slug" 
-                 value="{{ page.slug if page else '' }}"
-                 placeholder="auto-generated-slug">
-          <span style="display: flex; align-items: center; color: #6b7280; font-size: 0.875rem; white-space: nowrap;">
-            /{{ page.slug if page else 'page-slug' }}
-          </span>
+        <input 
+          type="text" 
+          class="form-control" 
+          name="slug" 
+          value="{{ page.slug if page else '' }}"
+          placeholder="auto-generated-from-title"
+          maxlength="100"
+          pattern="^[a-z0-9-]*$"
+          title="Use only lowercase letters, numbers, and hyphens">
+        {% if page and page.slug %}
+        <div class="slug-preview">
+          <span class="slug-preview-label">URL:</span>
+          <span class="slug-preview-value">/{{ page.slug }}</span>
         </div>
-        <div class="hint-text">Used in URLs (auto-generated if blank)</div>
+        {% endif %}
+        <span class="hint-text">URL-friendly identifier (auto-generated if left blank). Use hyphens for spaces.</span>
       </div>
     </div>
 
-    <!-- Publishing Options -->
+    <!-- Publishing Section -->
     <div class="form-card">
-      <h3 class="form-section-title">📢 Publishing Options</h3>
-      
+      <h3 class="form-section-title">
+        📢 Publishing Status
+      </h3>
+
       <div class="checkbox-group">
-        <input type="checkbox" id="isActive" name="is_active" value="1"
-               {% if page and page.is_active %}checked{% endif %}>
-        <label for="isActive"><strong>Publish this page</strong> (make it live on website)</label>
+        <input 
+          type="checkbox" 
+          id="isActive" 
+          name="is_active" 
+          value="1"
+          {% if page and page.is_active %}checked{% endif %}>
+        <div style="flex: 1;">
+          <label for="isActive"><strong>Publish this page</strong></label>
+          <div class="checkbox-group-description">
+            Make this page live and visible on the website
+          </div>
+        </div>
       </div>
-      
+
       {% if action == 'edit' and page %}
       <div class="checkbox-group">
-        <input type="checkbox" id="isInheritable" name="is_inheritable" value="on"
-               {% if page.is_inheritable %}checked{% endif %}>
-        <label for="isInheritable"><strong>Allow child colleges</strong> to inherit this page</label>
+        <input 
+          type="checkbox" 
+          id="isInheritable" 
+          name="is_inheritable" 
+          value="on"
+          {% if page.is_inheritable %}checked{% endif %}>
+        <div style="flex: 1;">
+          <label for="isInheritable"><strong>Allow child colleges</strong> to inherit this page</label>
+          <div class="checkbox-group-description">
+            Child/branch colleges can use this page as a template
+          </div>
+        </div>
       </div>
       {% endif %}
     </div>
@@ -277,17 +539,25 @@
     <!-- Shared Sections -->
     {% if shared_sections %}
     <div class="form-card">
-      <h3 class="form-section-title">🎨 Shared Sections</h3>
-      <p style="color: #6b7280; margin-bottom: 1rem;">Attach reusable sections to this page:</p>
-      
-      <div style="display: grid; gap: 0.5rem;">
+      <h3 class="form-section-title">
+        🎨 Reusable Sections
+      </h3>
+      <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 0.875rem;">
+        Attach shared sections to add consistent content blocks across pages:
+      </p>
+
+      <div style="display: grid; gap: 0.75rem;">
         {% for s in shared_sections %}
-        <div class="checkbox-group">
-          <input type="checkbox" name="shared_section_ids" value="{{ s.id }}" 
-                 id="shared_section_{{ s.id }}" {% if page and s in page.shared_sections %}checked{% endif %}>
+        <div class="checkbox-group" style="margin-bottom: 0;">
+          <input 
+            type="checkbox" 
+            name="shared_section_ids" 
+            value="{{ s.id }}"
+            id="shared_section_{{ s.id }}" 
+            {% if page and s in page.shared_sections %}checked{% endif %}>
           <label for="shared_section_{{ s.id }}">
-            {{ s.section_title or s.section_type }} 
-            {% if not s.is_active %}<span style="color: #6b7280;">(inactive)</span>{% endif %}
+            <strong>{{ s.section_title or s.section_type }}</strong>
+            {% if not s.is_active %}<span style="color: #6b7280; font-weight: normal;"> (inactive)</span>{% endif %}
           </label>
         </div>
         {% endfor %}
@@ -295,76 +565,107 @@
     </div>
     {% endif %}
 
-    <!-- SEO Settings -->
+    <!-- SEO Section -->
     <div class="form-card">
-      <h3 class="form-section-title">🔍 SEO & Open Graph</h3>
-      
+      <h3 class="form-section-title">
+        🔍 Search Engine Optimization
+      </h3>
+
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Meta Title</label>
-          <input type="text" name="meta_title" class="form-control" maxlength="60"
-                 value="{{ page.seo.meta_title if page and page.seo else '' }}"
-                 placeholder="Search result title (max 60 chars)">
-          <div class="hint-text">Appears in search results and browser tab</div>
+          <input 
+            type="text" 
+            name="meta_title" 
+            class="form-control" 
+            maxlength="60"
+            value="{{ page.seo.meta_title if page and page.seo else '' }}"
+            placeholder="What shows in search results">
+          <span class="hint-text">Search result title (50-60 characters ideal)</span>
         </div>
-        
+
         <div class="form-group">
-          <label class="form-label">Meta Keywords</label>
-          <input type="text" name="meta_keywords" class="form-control"
-                 value="{{ page.seo.meta_keywords if page and page.seo else '' }}"
-                 placeholder="keyword1, keyword2, keyword3">
-          <div class="hint-text">Comma-separated keywords</div>
+          <label class="form-label">Focus Keywords</label>
+          <input 
+            type="text" 
+            name="meta_keywords" 
+            class="form-control"
+            value="{{ page.seo.meta_keywords if page and page.seo else '' }}"
+            placeholder="keyword1, keyword2, keyword3">
+          <span class="hint-text">Comma-separated target keywords (3-5 recommended)</span>
         </div>
       </div>
-      
+
       <div class="form-group">
         <label class="form-label">Meta Description</label>
-        <textarea name="meta_description" class="form-control" maxlength="160"
-                  placeholder="Search result description (max 160 chars)">{{ page.seo.meta_description if page and page.seo else '' }}</textarea>
-        <div class="hint-text">What appears under the title in search results</div>
+        <textarea 
+          name="meta_description" 
+          class="form-control" 
+          maxlength="160"
+          style="min-height: 80px;"
+          placeholder="Brief description of page content (appears in search results)">{{ page.seo.meta_description if page and page.seo else '' }}</textarea>
+        <span class="hint-text">Search result preview (150-160 characters ideal)</span>
       </div>
-      
-      <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e5e7eb;">
-      
-      <h4 style="font-weight: 600; color: var(--dark); margin-bottom: 1rem; font-size: 0.95rem;">
-        Social Media (Open Graph)
-      </h4>
-      
+
+      <hr class="form-divider">
+
+      <div class="divider-label">
+        📱 Social Media (Open Graph)
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">OG Title</label>
-          <input type="text" name="og_title" class="form-control"
-                 value="{{ page.seo.og_title if page and page.seo else '' }}"
-                 placeholder="How it appears when shared">
+          <input 
+            type="text" 
+            name="og_title" 
+            class="form-control"
+            value="{{ page.seo.og_title if page and page.seo else '' }}"
+            placeholder="How it appears when shared on social media">
+          <span class="hint-text">Title for social sharing (can differ from page title)</span>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">OG Image URL</label>
-          <input type="url" name="og_image" class="form-control"
-                 value="{{ page.seo.og_image if page and page.seo else '' }}"
-                 placeholder="https://example.com/image.jpg">
+          <input 
+            type="url" 
+            name="og_image" 
+            class="form-control"
+            value="{{ page.seo.og_image if page and page.seo else '' }}"
+            placeholder="https://example.com/image.jpg">
+          <span class="hint-text">Image shown when shared (1200x630px recommended)</span>
         </div>
       </div>
-      
+
       <div class="form-group">
         <label class="form-label">OG Description</label>
-        <textarea name="og_description" class="form-control"
-                  placeholder="Social media preview text">{{ page.seo.og_description if page and page.seo else '' }}</textarea>
+        <textarea 
+          name="og_description" 
+          class="form-control"
+          style="min-height: 80px;"
+          placeholder="Text shown with the shared link on social media">{{ page.seo.og_description if page and page.seo else '' }}</textarea>
+        <span class="hint-text">Social sharing preview text</span>
       </div>
-      
+
       <div class="form-group">
         <label class="form-label">Canonical URL</label>
-        <input type="url" name="canonical_url" class="form-control"
-               value="{{ page.seo.canonical_url if page and page.seo else '' }}"
-               placeholder="https://example.com/page">
-        <div class="hint-text">Prevent duplicate content issues</div>
+        <input 
+          type="url" 
+          name="canonical_url" 
+          class="form-control"
+          value="{{ page.seo.canonical_url if page and page.seo else '' }}"
+          placeholder="https://example.com/page">
+        <span class="hint-text">Prevent duplicate content issues (use if page is duplicated)</span>
       </div>
-      
+
       <div class="form-group">
-        <label class="form-label">Schema JSON (Raw)</label>
-        <textarea name="schema_json" class="form-control" style="font-family: monospace; font-size: 0.8rem;"
-                  placeholder='{"@context": "https://schema.org", ...}'>{{ page.seo.schema_json if page and page.seo else '' }}</textarea>
-        <div class="hint-text">Advanced: Structured data for search engines</div>
+        <label class="form-label">Schema JSON (Advanced)</label>
+        <textarea 
+          name="schema_json" 
+          class="form-control" 
+          style="font-family: 'Courier New', monospace; font-size: 0.8rem; min-height: 100px;"
+          placeholder='{"@context": "https://schema.org", "@type": "Organization", ...}'>{{ page.seo.schema_json if page and page.seo else '' }}</textarea>
+        <span class="hint-text">Structured data markup for search engines (JSON-LD format)</span>
       </div>
     </div>
 
@@ -374,14 +675,18 @@
         <a href="/admin/pages?college_id={{ selected_college_id }}" class="btn btn-secondary">
           ← Back to Pages
         </a>
-        
+
         {% if action == 'edit' and page %}
-        <button type="submit" name="action" value="delete" class="btn btn-danger" 
-                onclick="return confirm('Delete this page? This cannot be undone.');">
+        <button 
+          type="submit" 
+          name="action" 
+          value="delete" 
+          class="btn btn-danger"
+          onclick="return confirm('Are you sure? This will permanently delete this page and cannot be undone.');">
           🗑️ Delete Page
         </button>
         {% endif %}
-        
+
         <button type="submit" class="btn btn-primary">
           {% if action == 'edit' and page %}
           💾 Save Changes
@@ -393,22 +698,18 @@
     </div>
   </form>
 
-  <!-- Quick Links for Existing Pages -->
+  <!-- Quick Actions for Existing Pages -->
   {% if action == 'edit' and page %}
   <div class="form-card">
     <h3 class="form-section-title">⚡ Quick Actions</h3>
     <div class="quick-actions">
-      <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" 
-         class="btn btn-primary" style="text-align: center;">
-        🎨 Design Page
+      <a href="/admin/page/{{ page.id }}/design?college_id={{ selected_college_id }}" class="quick-action-btn">
+        <div class="quick-action-icon">🎨</div>
+        <div>Design Page</div>
       </a>
-      <a href="/admin/page/{{ page.id }}/seo?college_id={{ selected_college_id }}" 
-         class="btn btn-primary" style="text-align: center;">
-        🔍 SEO Panel
-      </a>
-      <a href="/pages/{{ page.slug }}" target="_blank" 
-         class="btn btn-secondary" style="text-align: center;">
-        👁️ Preview Page
+      <a href="/admin/page/{{ page.id }}/seo?college_id={{ selected_college_id }}" class="quick-action-btn">
+        <div class="quick-action-icon">🔍</div>
+        <div>SEO Settings</div>
       </a>
     </div>
   </div>

@@ -2,323 +2,638 @@
 
 {% block content %}
 <style>
+  .dashboard-container {
+    background: #f9fafb;
+    padding: 2rem;
+    min-height: 100vh;
+    margin: -2rem;
+  }
+
   .dashboard-header {
     margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid white;
   }
-  
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+  }
+
+  .dashboard-header p {
+    color: #6b7280;
+    margin: 0.5rem 0 0 0;
+  }
+
+  /* Stats Grid */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
   }
-  
+
   .stat-card {
     background: white;
     border-radius: 0.75rem;
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    border-left: 4px solid var(--primary);
+    border-left: 4px solid #3b82f6;
+    transition: all 0.3s ease;
   }
-  
-  .stat-card.applications {
-    border-left-color: #3b82f6;
+
+  .stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
   }
-  
-  .stat-card.pages {
-    border-left-color: #8b5cf6;
+
+  .stat-card.applications { border-left-color: #10b981; }
+  .stat-card.pages { border-left-color: #f59e0b; }
+  .stat-card.colleges { border-left-color: #8b5cf6; }
+  .stat-card.courses { border-left-color: #ec4899; }
+
+  .stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
-  
-  .stat-card.colleges {
-    border-left-color: #ec4899;
-  }
-  
-  .stat-card.courses {
-    border-left-color: #f59e0b;
-  }
-  
+
   .stat-value {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--primary);
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1f2937;
     margin: 0.5rem 0;
   }
-  
-  .stat-label {
+
+  .stat-action {
     font-size: 0.875rem;
-    color: #6b7280;
-    text-transform: uppercase;
+    color: #3b82f6;
+    text-decoration: none;
     font-weight: 600;
+    margin-top: 1rem;
+    display: inline-block;
   }
-  
-  .recent-section {
+
+  .stat-action:hover {
+    color: #1e40af;
+  }
+
+  /* Quick Actions */
+  .quick-actions-section {
     background: white;
     border-radius: 0.75rem;
-    padding: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .quick-actions-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
     margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
-  
-  .recent-section h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: var(--dark);
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .action-btn {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: #1f2937;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .action-btn:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #1e40af;
+    transform: translateY(-2px);
+  }
+
+  .action-btn-icon {
+    font-size: 1.5rem;
+  }
+
+  .action-btn-text {
+    font-size: 0.875rem;
+  }
+
+  /* Management Section */
+  .management-section {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+  }
+
+  .section-title-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .view-all-link {
+    font-size: 0.875rem;
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .view-all-link:hover {
+    color: #1e40af;
+  }
+
+  /* Tables */
+  .management-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .management-table thead {
+    background: #f9fafb;
+  }
+
+  .management-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 0.75rem;
   }
-  
-  .application-item {
+
+  .management-table td {
     padding: 1rem;
     border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
-  
-  .application-item:last-child {
-    border-bottom: none;
+
+  .management-table tbody tr:hover {
+    background: #f9fafb;
   }
-  
-  .application-info {
-    flex: 1;
-  }
-  
-  .application-name {
-    font-weight: 600;
-    color: var(--dark);
-    margin-bottom: 0.25rem;
-  }
-  
-  .application-meta {
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-  
+
   .status-badge {
+    display: inline-block;
     padding: 0.375rem 0.75rem;
     border-radius: 0.25rem;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
   }
-  
-  .status-pending {
-    background: #fef3c7;
-    color: #92400e;
-  }
-  
-  .status-approved {
+
+  .status-active {
     background: #dcfce7;
     color: #166534;
   }
-  
+
+  .status-draft {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-pending {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .status-approved {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
   .status-rejected {
     background: #fee2e2;
     color: #991b1b;
   }
-  
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-icon {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    font-size: 0.875rem;
+    color: #3b82f6;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+  }
+
+  .btn-icon:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+  }
+
+  .btn-icon.delete {
+    color: #ef4444;
+  }
+
+  .btn-icon.delete:hover {
+    background: #fef2f2;
+    border-color: #ef4444;
+  }
+
   .empty-state {
     text-align: center;
-    padding: 2rem;
+    padding: 3rem 1rem;
     color: #6b7280;
   }
-  
+
   .empty-state-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
     opacity: 0.5;
   }
-  
-  .action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
+
+  .empty-state-text {
+    margin-bottom: 1.5rem;
   }
-  
-  .btn-small {
-    padding: 0.375rem 0.75rem;
+
+  .empty-state-action {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  /* Two Column Layout */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .mini-card {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+  }
+
+  .mini-card:hover {
+    background: #f3f4f6;
+  }
+
+  .mini-card-title {
+    font-weight: 600;
+    color: #1f2937;
     font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .mini-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+  }
+
+  .management-shortcut {
+    display: block;
+    padding: 0.75rem;
+    text-decoration: none;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.2s;
+  }
+
+  .management-shortcut:last-child {
+    border-bottom: none;
+  }
+
+  .management-shortcut:hover {
+    background: #f9fafb;
+    padding-left: 1rem;
+  }
+
+  .management-shortcut-title {
+    font-weight: 600;
+    display: block;
+  }
+
+  .management-shortcut-desc {
+    color: #6b7280;
+    display: block;
+    font-size: 0.875rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .actions-grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-container {
+      padding: 1rem;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .management-table {
+      font-size: 0.875rem;
+    }
+
+    .management-table th,
+    .management-table td {
+      padding: 0.75rem 0.5rem;
+    }
   }
 </style>
 
-<div class="dashboard-header">
-  <h1>{{ title }}</h1>
-  <p class="text-muted">{{ subtitle }}</p>
-</div>
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>📊 Admin Dashboard</h1>
+    <p>Welcome back! Manage your college content and data from here.</p>
+  </div>
 
-<!-- Statistics Cards -->
-<div class="stats-grid">
-  <div class="stat-card applications">
-    <div class="stat-label">Applications</div>
-    <div class="stat-value">{{ (stats.get('total_applications', 0) if stats is mapping else 0)|default(0, true) }}</div>
-  </div>
-  
-  <div class="stat-card pages">
-    <div class="stat-label">Total Pages</div>
-    <div class="stat-value">{{ (stats.get('total_pages', 0) if stats is mapping else 0)|default(0, true) }}</div>
-  </div>
-  
-  <div class="stat-card colleges">
-    <div class="stat-label">Colleges</div>
-    <div class="stat-value">{{ (stats.get('total_colleges', 0) if stats is mapping else 0)|default(0, true) }}</div>
-  </div>
-  
-  <div class="stat-card courses">
-    <div class="stat-label">Courses</div>
-    <div class="stat-value">{{ (stats.get('total_courses', 0) if stats is mapping else 0)|default(0, true) }}</div>
-  </div>
-</div>
+  <!-- Stats Overview -->
+  <div class="stats-grid">
+    <div class="stat-card applications">
+      <div class="stat-label">📋 Applications</div>
+      <div class="stat-value">{{ stats.total_applications or 0 }}</div>
+      <a href="/admin/applications" class="stat-action">View All →</a>
+    </div>
 
-<!-- Quick Actions -->
-<div class="recent-section">
-  <h3>Quick Actions</h3>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-    <a href="/admin/pages" class="btn btn-outline-primary">Manage Pages</a>
-    <a href="/admin/colleges" class="btn btn-outline-primary">Manage Colleges</a>
-    <a href="/admin/courses" class="btn btn-outline-primary">Manage Courses</a>
-    <a href="/admin/faculty" class="btn btn-outline-primary">Manage Faculty</a>
-    <a href="/admin/placements" class="btn btn-outline-primary">Manage Placements</a>
-    <a href="/admin/applications" class="btn btn-outline-primary">View Applications</a>
-  </div>
-</div>
+    <div class="stat-card pages">
+      <div class="stat-label">📄 Pages</div>
+      <div class="stat-value">{{ stats.total_pages or 0 }}</div>
+      <a href="/admin/pages" class="stat-action">View All →</a>
+    </div>
 
-<!-- Recent Applications -->
-{% if recent_applications and recent_applications|length > 0 %}
-<div class="recent-section">
-  <h3>Recent Applications</h3>
-  
-  {% for app in recent_applications %}
-  <div class="application-item">
-    <div class="application-info">
-      <div class="application-name">{{ app.name or 'Unknown Applicant' }}</div>
-      <div class="application-meta">
-        Course: <strong>{{ app.course_name or 'Not specified' }}</strong> • 
-        <span class="text-muted">{{ app.applied_at or 'N/A' }}</span>
+    <div class="stat-card courses">
+      <div class="stat-label">📚 Courses</div>
+      <div class="stat-value">{{ stats.total_courses or 0 }}</div>
+      <a href="/admin/courses" class="stat-action">View All →</a>
+    </div>
+
+    <div class="stat-card colleges">
+      <div class="stat-label">🏢 Colleges</div>
+      <div class="stat-value">{{ stats.total_colleges or 0 }}</div>
+      <a href="/admin/colleges" class="stat-action">View All →</a>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions-section">
+    <div class="quick-actions-title">
+      ⚡ Quick Actions
+    </div>
+    <div class="actions-grid">
+      <a href="/admin/pages/new" class="action-btn">
+        <div class="action-btn-icon">📄</div>
+        <div class="action-btn-text">Create Page</div>
+      </a>
+      <a href="/admin/courses/new" class="action-btn">
+        <div class="action-btn-icon">📚</div>
+        <div class="action-btn-text">Add Course</div>
+      </a>
+      <a href="/admin/faculty/new" class="action-btn">
+        <div class="action-btn-icon">👨‍🏫</div>
+        <div class="action-btn-text">Add Faculty</div>
+      </a>
+      <a href="/admin/colleges/new" class="action-btn">
+        <div class="action-btn-icon">🏢</div>
+        <div class="action-btn-text">New College</div>
+      </a>
+      <a href="/admin/activities/new" class="action-btn">
+        <div class="action-btn-icon">🎉</div>
+        <div class="action-btn-text">Add Activity</div>
+      </a>
+      <a href="/admin/facilities/new" class="action-btn">
+        <div class="action-btn-icon">🏗️</div>
+        <div class="action-btn-text">Add Facility</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="dashboard-grid">
+    <!-- Left Column: Recent Activities -->
+    <div>
+      <!-- Recent Applications -->
+      <div class="management-section">
+        <div class="section-title">
+          <div class="section-title-text">📋 Recent Applications</div>
+          <a href="/admin/applications" class="view-all-link">View All →</a>
+        </div>
+
+        {% if recent_applications %}
+        <table class="management-table">
+          <thead>
+            <tr>
+              <th>Applicant</th>
+              <th>Course</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in recent_applications[:5] %}
+            <tr>
+              <td>
+                <strong>{{ app.name }}</strong><br>
+                <small style="color: #6b7280;">{{ app.email or '-' }}</small>
+              </td>
+              <td>{{ app.course_name or '-' }}</td>
+              <td>
+                <span class="status-badge {% if app.status == 'approved' %}status-approved{% elif app.status == 'rejected' %}status-rejected{% elif app.status == 'pending' %}status-pending{% else %}status-draft{% endif %}">
+                  {{ app.status or 'pending' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <a href="/admin/applications/{{ app.id }}" class="btn-icon">View</a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div class="empty-state-text">No applications yet</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent Pages -->
+      <div class="management-section">
+        <div class="section-title">
+          <div class="section-title-text">📄 Recent Pages</div>
+          <a href="/admin/pages" class="view-all-link">View All →</a>
+        </div>
+
+        {% if pages %}
+        <table class="management-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>College</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for page in pages[:5] %}
+            <tr>
+              <td><strong>{{ page.title }}</strong></td>
+              <td>{{ page.college_name or 'General' }}</td>
+              <td>
+                <span class="status-badge {% if page.is_active %}status-active{% else %}status-draft{% endif %}">
+                  {{ 'Active' if page.is_active else 'Draft' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <a href="/admin/pages/{{ page.id }}/edit?college_id={{ page.college_id or '' }}" class="btn-icon">Edit</a>
+                  <a href="/admin/page/{{ page.id }}/design" class="btn-icon">Design</a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div class="empty-state-text">No pages created yet</div>
+          <a href="/admin/pages/new" class="empty-state-action">Create First Page →</a>
+        </div>
+        {% endif %}
       </div>
     </div>
-    <div style="display: flex; gap: 1rem; align-items: center;">
-      {% set status = app.status or 'pending' %}
-      <span class="status-badge" style="background-color: 
-        {% if status == 'approved' %}#dcfce7; color: #166534;
-        {% elif status == 'rejected' %}#fee2e2; color: #991b1b;
-        {% else %}#fef3c7; color: #92400e;
-        {% endif %}">
-        {{ status|capitalize }}
-      </span>
-      {% if app.id %}
-      <a href="/admin/applications/{{ app.id }}" class="btn btn-sm btn-outline-secondary">View</a>
-      {% endif %}
+
+    <!-- Right Column: Quick Stats & System Info -->
+    <div>
+      <!-- System Overview -->
+      <div class="management-section">
+        <div class="section-title">
+          <div class="section-title-text">📈 Overview</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-card-title">👥 Faculty Members</div>
+          <div class="mini-card-value">{{ stats.total_faculty or 0 }}</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-card-title">🏗️ Facilities</div>
+          <div class="mini-card-value">{{ facilities_count or 0 }}</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-card-title">📬 Enquiries</div>
+          <div class="mini-card-value">{{ stats.total_enquiries or 0 }}</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-card-title">🤝 Placements</div>
+          <div class="mini-card-value">{{ placements_count or 0 }}</div>
+        </div>
+      </div>
+
+      <!-- Colleges Overview -->
+      <div class="management-section">
+        <div class="section-title">
+          <div class="section-title-text">🏢 Colleges</div>
+          <a href="/admin/colleges" class="view-all-link">All →</a>
+        </div>
+
+        {% if colleges %}
+        {% for college in colleges[:5] %}
+        <div class="mini-card">
+          <div class="mini-card-title">{{ college.name }}</div>
+          <small style="color: #6b7280;">
+            📄 {{ college.pages_count or 0 }} pages |
+            📚 {{ college.courses_count or 0 }} courses |
+            👥 {{ college.faculty_count or 0 }} faculty
+          </small>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state" style="padding: 1.5rem;">
+          <div class="empty-state-icon" style="font-size: 2rem;">🏢</div>
+          <div class="empty-state-text" style="margin-bottom: 0.5rem;">No colleges</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Management Shortcuts -->
+      <div class="management-section">
+        <div class="section-title">
+          <div class="section-title-text">⚙️ Manage</div>
+        </div>
+
+        <a href="/admin/cms/menus" class="management-shortcut">
+          <span class="management-shortcut-title">📋 Navigation Menus</span>
+          <span class="management-shortcut-desc">Configure site menus</span>
+        </a>
+
+        <a href="/admin/cms/media" class="management-shortcut">
+          <span class="management-shortcut-title">🖼️ Media Library</span>
+          <span class="management-shortcut-desc">Images and assets</span>
+        </a>
+
+        <a href="/admin/cms/shared-sections" class="management-shortcut">
+          <span class="management-shortcut-title">🎨 Shared Sections</span>
+          <span class="management-shortcut-desc">Reusable content blocks</span>
+        </a>
+      </div>
     </div>
   </div>
-  {% endfor %}
 </div>
-{% else %}
-<div class="recent-section">
-  <div class="empty-state">
-    <div class="empty-state-icon">—</div>
-    <p>No applications submitted yet</p>
-  </div>
-</div>
-{% endif %}
-
-<!-- Colleges Overview -->
-{% if colleges and colleges|length > 0 %}
-<div class="recent-section">
-  <h3>Colleges Overview</h3>
-  <table class="table table-sm">
-    <thead class="table-light">
-      <tr>
-        <th>College Name</th>
-        <th>Pages</th>
-        <th>Courses</th>
-        <th>Faculty</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for college in colleges[:10] %}
-      <tr>
-        <td>{{ college.name or 'Unknown College' }}</td>
-        <td>
-          <span class="badge bg-info">
-            {{ college.pages_count or 0 }}
-          </span>
-        </td>
-        <td>
-          <span class="badge bg-success">
-            {{ college.courses_count or 0 }}
-          </span>
-        </td>
-        <td>
-          <span class="badge bg-warning">
-            {{ college.faculty_count or 0 }}
-          </span>
-        </td>
-        <td>
-          {% if college.id %}
-          <a href="/admin/colleges/{{ college.id }}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
-          <a href="/admin/pages?college_id={{ college.id }}" class="btn btn-sm btn-outline-secondary">Pages</a>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% if colleges|length > 10 %}
-  <div style="text-align: center; margin-top: 1rem;">
-    <a href="/admin/colleges" class="btn btn-sm btn-outline-primary">View All Colleges ({{ colleges|length }})</a>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
-
-<!-- Pages Overview -->
-{% if pages and pages|length > 0 %}
-<div class="recent-section">
-  <h3>Recent Pages</h3>
-  <table class="table table-sm">
-    <thead class="table-light">
-      <tr>
-        <th>Title</th>
-        <th>College</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for page in pages[:10] %}
-      <tr>
-        <td>{{ page.title or 'Untitled' }}</td>
-        <td>{{ page.college_name or '—' }}</td>
-        <td>
-          <span class="badge bg-primary">
-            {{ page.page_type or '—' }}
-          </span>
-        </td>
-        <td>
-          {% if page.is_active %}
-          <span class="badge bg-success">Active</span>
-          {% else %}
-          <span class="badge bg-secondary">Inactive</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if page.id %}
-          <a href="/admin/page/{{ page.id }}/design" class="btn btn-sm btn-outline-info">Design</a>
-          <a href="/admin/pages/{{ page.id }}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% if pages|length > 10 %}
-  <div style="text-align: center; margin-top: 1rem;">
-    <a href="/admin/pages" class="btn btn-sm btn-outline-primary">View All Pages ({{ pages|length }})</a>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
-
 {% endblock %}
+
+

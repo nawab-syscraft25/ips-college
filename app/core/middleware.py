@@ -2,6 +2,9 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.models.college import College
 from app.core.database import SessionLocal
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CollegeResolverMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -28,20 +31,40 @@ class CollegeResolverMiddleware(BaseHTTPMiddleware):
 
         # Subdomain-based college resolution (for frontend)
         if subdomain not in ["www", "ipsacademy", "localhost"]:
-            college = db.query(College).filter(
-                College.subdomain == subdomain,
-                College.is_active == True
-            ).first()
+            try:
+                college = db.query(College).filter(
+                    College.subdomain == subdomain,
+                    College.is_active == True
+                ).first()
+            except Exception as e:
+                logger.error(f"Error resolving college by subdomain: {e}")
+                college = None
 
         request.state.college = college
         request.state.selected_college_id = int(college_id) if college_id else None
         
         # Pre-fetch colleges for dropdown in admin templates
         if "/admin" in request.url.path:
-            all_colleges = db.query(College).filter(College.parent_id == None).all()
-            request.state.colleges_for_dropdown = all_colleges
+            try:
+                all_colleges = db.query(College).filter(College.parent_id == None).all()
+                request.state.colleges_for_dropdown = all_colleges
+            except Exception as e:
+                logger.error(f"Error fetching colleges for dropdown: {e}")
+                request.state.colleges_for_dropdown = []
         
-        response = await call_next(request)
-        db.close()
+        try:
+            response = await call_next(request)
+        finally:
+            # Safely close the database session
+            try:
+                db.close()
+            except Exception as e:
+                logger.error(f"Error closing database session: {e}")
+                # Dispose of the session if close fails
+                try:
+                    db.dispose()
+                except:
+                    pass
+        
         return response
 

@@ -23,6 +23,11 @@ try:
 except Exception:
 	admin = None
 
+try:
+	from app.api.v1 import public
+except Exception:
+	public = None
+
 if colleges and hasattr(colleges, "router"):
 	api_router.include_router(colleges.router, prefix="/colleges", tags=["Colleges"])
 
@@ -34,3 +39,6 @@ if courses and hasattr(courses, "router"):
 
 if admin and hasattr(admin, "router"):
 	api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
+
+if public and hasattr(public, "router"):
+	api_router.include_router(public.router, prefix="", tags=["Public API"])

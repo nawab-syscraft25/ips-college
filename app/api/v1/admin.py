@@ -67,72 +67,109 @@ templates = Jinja2Templates(directory=str(templates_dir))
 
 @router.get("/", include_in_schema=False)
 def admin_index(request: Request, db: Session = Depends(get_db)):
-    # require login
-    if isinstance(_require_login(request), RedirectResponse):
-        return _require_login(request)
-    # make sure we always have at least one admin user
-    _ensure_default_admin(db)
-    
-    colleges = db.query(College).order_by(College.id.desc()).all()
-    college_id = request.query_params.get("college_id")
-    
-    pages = db.query(Page).order_by(Page.id.desc()).all()
+    """
+    Robust admin dashboard with comprehensive stats and management overview.
+    """
+    try:
+        # require login
+        if isinstance(_require_login(request), RedirectResponse):
+            return _require_login(request)
+        # make sure we always have at least one admin user
+        _ensure_default_admin(db)
+        
+        college_id = request.query_params.get("college_id")
+        
+        # Fetch all colleges with stats
+        colleges = db.query(College).order_by(College.id.desc()).all()
+        
+        # Add counts to colleges
+        for college in colleges:
+            college.pages_count = db.query(Page).filter(Page.college_id == college.id).count()
+            college.courses_count = db.query(Course).filter(Course.college_id == college.id).count()
+            college.faculty_count = db.query(Faculty).filter(Faculty.college_id == college.id).count()
 
-    # Add counts to colleges
-    for college in colleges:
-        college.pages_count = db.query(Page).filter(Page.college_id == college.id).count()
-        college.courses_count = db.query(Course).filter(Course.college_id == college.id).count()
-        college.faculty_count = db.query(Faculty).filter(Faculty.college_id == college.id).count()
+        # Fetch all pages with college info
+        pages = db.query(Page).order_by(Page.id.desc()).limit(10).all()
+        for page in pages:
+            if page.college_id:
+                college = db.query(College).filter(College.id == page.college_id).first()
+                page.college_name = college.name if college else None
+            else:
+                page.college_name = None
 
-    # Add college info to pages
-    for page in pages:
-        if page.college_id:
-            page.college_name = db.query(College).filter(College.id == page.college_id).first().name
-        else:
-            page.college_name = None
+        # Dashboard statistics
+        stats = {
+            "total_colleges": db.query(College).count(),
+            "total_faculty": db.query(Faculty).count(),
+            "total_applications": db.query(Application).count(),
+            "total_pages": db.query(Page).count(),
+            "total_courses": db.query(Course).count(),
+            "total_enquiries": db.query(Enquiry).count(),
+        }
 
-    # Dashboard stats
-    stats = {
-        "total_colleges": db.query(College).count(),
-        "total_faculty": db.query(Faculty).count(),
-        "total_applications": db.query(Application).count(),
-        "total_pages": db.query(Page).count(),
-        "total_courses": db.query(Course).count(),
-        "total_enquiries": db.query(Enquiry).count(),
-    }
+        # Count facilities and placements
+        facilities_count = db.query(Facility).count()
+        placements_count = db.query(Placement).count()
 
-    # Recent applications (most recent 5)
-    recent_apps = []
-    apps = db.query(Application).order_by(Application.created_at.desc()).limit(5).all()
-    for a in apps:
-        program = None
-        if a.course_id:
-            course = db.query(Course).filter(Course.id == a.course_id).first()
-            program = course.name if course else "-"
-        recent_apps.append(
+        # Recent applications (most recent 5)
+        recent_apps = []
+        apps = db.query(Application).order_by(Application.created_at.desc()).limit(5).all()
+        for a in apps:
+            program = None
+            if a.course_id:
+                course = db.query(Course).filter(Course.id == a.course_id).first()
+                program = course.name if course else "-"
+            recent_apps.append(
+                {
+                    "id": a.id,
+                    "name": a.name,
+                    "email": a.email,
+                    "course_name": program or "-",
+                    "status": a.status or "pending",
+                    "applied_at": a.created_at.strftime("%b %d, %Y") if a.created_at else "",
+                }
+            )
+
+        return templates.TemplateResponse(
+            "admin/index.html",
             {
-                "id": a.id,
-                "name": a.name,
-                "course_name": program or "-",
-                "status": a.status or "pending",
-                "applied_at": a.created_at.strftime("%b %d, %Y") if a.created_at else "",
-                "view_url": f"/admin/applications/{a.id}" ,
-            }
+                "request": request,
+                "colleges": colleges[:10],  # Limit to 10 for dashboard
+                "pages": pages,
+                "stats": stats,
+                "recent_applications": recent_apps,
+                "facilities_count": facilities_count,
+                "placements_count": placements_count,
+                "selected_college_id": college_id or "",
+            },
         )
-
-    return templates.TemplateResponse(
-        "admin/index.html",
-        {
-            "request": request,
-            "colleges": colleges,
-            "pages": pages,
-            # "title": "Dashboard",
-            # "subtitle": "Welcome back to IPS Academy Admin Panel",
-            "stats": stats,
-            "recent_applications": recent_apps,
-            "selected_college_id": college_id or "",
-        },
-    )
+    except Exception as e:
+        # Log error and return error dashboard
+        print(f"Dashboard Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Return dashboard with empty stats
+        return templates.TemplateResponse(
+            "admin/index.html",
+            {
+                "request": request,
+                "colleges": [],
+                "pages": [],
+                "stats": {
+                    "total_colleges": 0,
+                    "total_faculty": 0,
+                    "total_applications": 0,
+                    "total_pages": 0,
+                    "total_courses": 0,
+                    "total_enquiries": 0,
+                },
+                "recent_applications": [],
+                "facilities_count": 0,
+                "placements_count": 0,
+                "selected_college_id": "",
+            },
+        )
 
 
 # -------------------
