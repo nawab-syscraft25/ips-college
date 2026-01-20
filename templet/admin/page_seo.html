@@ -232,26 +232,6 @@
 
 <div class="seo-container">
   <!-- SEO Scores -->
-  <div class="seo-card">
-    <div class="seo-card-header">
-      <i class="fas fa-chart-pie"></i>
-      <h3>SEO Score Overview</h3>
-    </div>
-    <div class="seo-score">
-      <div class="score-box">
-        <div class="score-label">Overall Score</div>
-        <div class="score-value">{{ page.seo.seo_score if page and page.seo else 0 }}/100</div>
-      </div>
-      <div class="score-box">
-        <div class="score-label">Readability</div>
-        <div class="score-value">{{ page.seo.readability_score if page and page.seo else 0 }}/100</div>
-      </div>
-      <div class="score-box">
-        <div class="score-label">Keywords</div>
-        <div class="score-value">{{ 1 if page and page.seo and page.seo.focus_keyword else 0 }}/1</div>
-      </div>
-    </div>
-  </div>
 
   <!-- Meta Information -->
   <div class="seo-card">
