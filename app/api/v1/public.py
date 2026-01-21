@@ -243,7 +243,7 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                 "type": section.section_type,
                 "title": section.section_title,
                 "description": section.section_description,
-                "color": section.background_color or (section.extra_data.get("hero_text_color") if section.extra_data and isinstance(section.extra_data, dict) else None),
+                "color": section.hero_text_color or section.background_color or None,
                 "images": images,
             }
         else:
@@ -268,8 +268,8 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                 ]
             }
 
-        # Add extra_data only if present
-        if section.extra_data:
+        # Add extra_data only for non-hero sections (keep HERO payload minimal)
+        if section.section_type != "HERO" and section.extra_data:
             section_obj["extra_data"] = section.extra_data
 
         sections_data.append(section_obj)

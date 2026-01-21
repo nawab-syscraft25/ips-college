@@ -109,83 +109,28 @@
     <div class="form-section-title">
       <i class="fas fa-image"></i> Hero Section Settings
     </div>
-    
+
     <div class="type-specific-fields">
       <div class="mb-3">
-        <label class="form-label">Hero Image</label>
-        <input type="file" name="hero_image" id="heroImageInput" class="form-control" accept="image/*" onchange="previewImage(event)">
-        {% if section and section.extra_data and section.extra_data.get('hero_image_url') %}
-        <div class="mt-3">
-          <small class="text-muted">Current image:</small><br>
-          <img src="{{ section.extra_data.hero_image_url }}" alt="Hero image" class="image-preview" style="max-width: 300px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;" onerror="this.src='/static/uploads/hero/missing.png'; console.log('Image failed to load: {{ section.extra_data.hero_image_url }}')">
-          <br><small style="color: #6b7280;">Path: {{ section.extra_data.hero_image_url }}</small>
-        </div>
-        <input type="hidden" name="existing_hero_image" value="{{ section.extra_data.hero_image_url }}">
-        {% else %}
-        {% if section and section.section_type == 'HERO' %}
-        <div class="mt-2 p-3 bg-warning bg-opacity-10 rounded">
-          <small>No image uploaded yet. Upload one to get started.</small>
-        </div>
-        {% endif %}
-        {% endif %}
-        <div id="imagePreview"></div>
-      </div>
-      <div class="mb-3">
         <label class="form-label">Hero Images (one URL per line)</label>
-        <textarea name="hero_images" class="form-control" rows="3" placeholder="One image URL per line">{% if section and section.hero_images %}{{ section.hero_images | join('\n') }}{% endif %}</textarea>
-        <small class="form-text text-muted">You can provide multiple image URLs (used as slides). File upload above stores a single image in the hero image slot.</small>
+        <textarea name="hero_images" class="form-control" rows="4" placeholder="One image URL per line">{% if section and section.hero_images %}{{ section.hero_images | join('\n') }}{% elif section and section.hero_image_url %}{{ section.hero_image_url }}{% endif %}</textarea>
+        <small class="form-text text-muted">Provide one or more image URLs. If you provide a single URL, it will be used as the single hero image.</small>
       </div>
-      
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label class="form-label">CTA Button Text</label>
-            <input type="text" name="hero_cta_text" class="form-control" placeholder="e.g., Learn More" value="{{ section.extra_data.get('hero_cta_text', '') if section and section.extra_data else '' }}">
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label class="form-label">CTA Button Link</label>
-            <input type="text" name="hero_cta_link" class="form-control" placeholder="e.g., /about-us" value="{{ section.extra_data.get('hero_cta_link', '') if section and section.extra_data else '' }}">
-          </div>
-        </div>
-      </div>
-      
+
       <div class="mb-3">
-        <label class="form-label">Hero Background Style</label>
-        <select name="hero_style" class="form-select">
-          {% set hero_style = section.extra_data.get('hero_style', 'overlay') if section and section.extra_data else 'overlay' %}
-          <option value="overlay" {% if hero_style == 'overlay' %}selected{% endif %}>Dark Overlay</option>
-          <option value="gradient" {% if hero_style == 'gradient' %}selected{% endif %}>Gradient</option>
-          <option value="plain" {% if hero_style == 'plain' %}selected{% endif %}>Plain</option>
-          <option value="parallax" {% if hero_style == 'parallax' %}selected{% endif %}>Parallax Effect</option>
+        <label class="form-label">Text Color (optional)</label>
+        <select name="hero_text_color" class="form-select">
+          {% set text_color = section.hero_text_color if section and section.hero_text_color else '' %}
+          <option value="" {% if text_color == '' %}selected{% endif %}>Default</option>
+          <option value="white" {% if text_color == 'white' %}selected{% endif %}>White</option>
+          <option value="dark" {% if text_color == 'dark' %}selected{% endif %}>Dark</option>
+          <option value="primary" {% if text_color == 'primary' %}selected{% endif %}>Primary Color</option>
         </select>
       </div>
-      
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label class="form-label">Text Color</label>
-            <select name="hero_text_color" class="form-select">
-              {% set text_color = section.extra_data.get('hero_text_color', 'white') if section and section.extra_data else 'white' %}
-              <option value="white" {% if text_color == 'white' %}selected{% endif %}>White</option>
-              <option value="dark" {% if text_color == 'dark' %}selected{% endif %}>Dark</option>
-              <option value="primary" {% if text_color == 'primary' %}selected{% endif %}>Primary Color</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label class="form-label">Hero Height</label>
-            <select name="hero_height" class="form-select">
-              {% set height = section.extra_data.get('hero_height', 'medium') if section and section.extra_data else 'medium' %}
-              <option value="small" {% if height == 'small' %}selected{% endif %}>Small (300px)</option>
-              <option value="medium" {% if height == 'medium' %}selected{% endif %}>Medium (500px)</option>
-              <option value="large" {% if height == 'large' %}selected{% endif %}>Large (700px)</option>
-              <option value="full" {% if height == 'full' %}selected{% endif %}>Full Screen</option>
-            </select>
-          </div>
-        </div>
+
+      <div class="mb-3">
+        <label class="form-label">Hero Description (optional)</label>
+        <textarea name="section_description" class="form-control" rows="3" placeholder="Hero description / caption">{{ section.section_description if section else '' }}</textarea>
       </div>
     </div>
   </div>
