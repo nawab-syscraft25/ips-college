@@ -1326,12 +1326,24 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
             raw_desc = raw_sub
         raw_sub = raw_sub[:255]
 
+    # Parse hero_images textarea (one URL per line) into a JSON list
+    raw_hero_images = form.get("hero_images") or None
+    hero_images_list = None
+    if raw_hero_images:
+        try:
+            hero_images_list = [ln.strip() for ln in raw_hero_images.splitlines() if ln.strip()]
+            if not hero_images_list:
+                hero_images_list = None
+        except Exception:
+            hero_images_list = None
+
     section = PageSection(
         page_id=page_id,
         section_type=section_type,
         section_title=form.get("section_title") or None,
         section_subtitle=(raw_sub or None),
         section_description=(raw_desc or None),
+        hero_images=hero_images_list,
         sort_order=int(form.get("sort_order") or 0),
         is_active=bool(form.get("is_active")),
         extra_data=extra_data if extra_data else None
@@ -1466,6 +1478,16 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         extra_data['hero_style'] = form.get("hero_style") or "overlay"
         extra_data['hero_text_color'] = form.get("hero_text_color") or "white"
         extra_data['hero_height'] = form.get("hero_height") or "medium"
+
+    # Parse hero_images textarea into list when updating
+    raw_hero_images = form.get("hero_images") or None
+    hero_images_list = section.hero_images if getattr(section, 'hero_images', None) else None
+    if raw_hero_images is not None:
+        try:
+            parsed = [ln.strip() for ln in raw_hero_images.splitlines() if ln.strip()]
+            hero_images_list = parsed if parsed else None
+        except Exception:
+            hero_images_list = hero_images_list
     
     # Update section
     section.extra_data = extra_data
@@ -1478,6 +1500,7 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         section_title=section.section_title,
         section_subtitle=section.section_subtitle,
         section_description=section.section_description,
+        hero_images=hero_images_list,
         sort_order=section.sort_order,
         is_active=section.is_active,
         extra_data=extra_data

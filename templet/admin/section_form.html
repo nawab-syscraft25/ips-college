@@ -130,6 +130,11 @@
         {% endif %}
         <div id="imagePreview"></div>
       </div>
+      <div class="mb-3">
+        <label class="form-label">Hero Images (one URL per line)</label>
+        <textarea name="hero_images" class="form-control" rows="3" placeholder="One image URL per line">{% if section and section.hero_images %}{{ section.hero_images | join('\n') }}{% endif %}</textarea>
+        <small class="form-text text-muted">You can provide multiple image URLs (used as slides). File upload above stores a single image in the hero image slot.</small>
+      </div>
       
       <div class="row">
         <div class="col-md-6">

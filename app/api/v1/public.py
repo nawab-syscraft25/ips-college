@@ -211,31 +211,64 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
         items = db.query(SectionItem).filter(SectionItem.section_id == section.id).order_by(SectionItem.sort_order).all()
         
         # Clean section data - only essential fields
-        section_obj = {
-            "id": section.id,
-            "type": section.section_type,
-            "title": section.section_title,
-            "subtitle": section.section_subtitle,
-            "description": section.section_description,
-            "background_image": section.background_image,
-            "background_color": section.background_color,
-            "items": [
-                {
-                    "id": i.id,
-                    "title": i.title,
-                    "description": i.description,
-                    "image_url": i.image_url,
-                    "cta_text": i.cta_text,
-                    "cta_link": i.cta_link,
-                }
-                for i in items
-            ]
-        }
-        
+        if section.section_type == "HERO":
+            # Simplified hero representation: images (one or many), title, description, optional color
+            images = []
+            # prefer structured hero_images column if present
+            if getattr(section, 'hero_images', None):
+                try:
+                    for img in section.hero_images:
+                        if img and img not in images:
+                            images.append(img)
+                except Exception:
+                    pass
+            # prefer hero image from extra_data if no structured list
+            if not images and section.extra_data and isinstance(section.extra_data, dict):
+                hero_img = section.extra_data.get("hero_image_url")
+                if hero_img:
+                    images.append(hero_img)
+            # fallback to section.background_image
+            if section.background_image and section.background_image not in images:
+                images.append(section.background_image)
+            # include any item images as additional slides
+            for i in items:
+                if i.image_url and i.image_url not in images:
+                    images.append(i.image_url)
+
+            section_obj = {
+                "id": section.id,
+                "type": section.section_type,
+                "title": section.section_title,
+                "description": section.section_description,
+                "color": section.background_color or (section.extra_data.get("hero_text_color") if section.extra_data and isinstance(section.extra_data, dict) else None),
+                "images": images,
+            }
+        else:
+            section_obj = {
+                "id": section.id,
+                "type": section.section_type,
+                "title": section.section_title,
+                "subtitle": section.section_subtitle,
+                "description": section.section_description,
+                "background_image": section.background_image,
+                "background_color": section.background_color,
+                "items": [
+                    {
+                        "id": i.id,
+                        "title": i.title,
+                        "description": i.description,
+                        "image_url": i.image_url,
+                        "cta_text": i.cta_text,
+                        "cta_link": i.cta_link,
+                    }
+                    for i in items
+                ]
+            }
+
         # Add extra_data only if present
         if section.extra_data:
             section_obj["extra_data"] = section.extra_data
-            
+
         sections_data.append(section_obj)
     
     # Clean page response
