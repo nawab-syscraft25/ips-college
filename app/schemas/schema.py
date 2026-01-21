@@ -132,6 +132,13 @@ class PageSection(Base):
     extra_data: Mapped[dict] = mapped_column(JSON, nullable=True)
     # Optional structured hero images (list of image URLs)
     hero_images: Mapped[list] = mapped_column(JSON, nullable=True)
+    # Dedicated hero fields (migrated out of `extra_data`)
+    hero_image_url: Mapped[str] = mapped_column(String(1024), nullable=True)
+    hero_cta_text: Mapped[str] = mapped_column(String(255), nullable=True)
+    hero_cta_link: Mapped[str] = mapped_column(String(1024), nullable=True)
+    hero_style: Mapped[str] = mapped_column(String(50), nullable=True)
+    hero_text_color: Mapped[str] = mapped_column(String(50), nullable=True)
+    hero_height: Mapped[str] = mapped_column(String(50), nullable=True)
 
     page = relationship("Page", back_populates="sections")
     items = relationship("SectionItem", back_populates="section", cascade="all, delete-orphan", order_by="SectionItem.sort_order")

@@ -1306,13 +1306,12 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
     section_type = form.get("section_type") or "CONTENT"
     extra_data = {}
     
-    # Handle type-specific data (HERO section)
-    if section_type == "HERO":
-        extra_data['hero_style'] = form.get("hero_style") or "overlay"
-        extra_data['hero_text_color'] = form.get("hero_text_color") or "white"
-        extra_data['hero_height'] = form.get("hero_height") or "medium"
-        extra_data['hero_cta_text'] = form.get("hero_cta_text") or None
-        extra_data['hero_cta_link'] = form.get("hero_cta_link") or None
+    # Handle type-specific data (HERO section) - store in dedicated columns
+    hero_style_val = form.get("hero_style") or "overlay"
+    hero_text_color_val = form.get("hero_text_color") or "white"
+    hero_height_val = form.get("hero_height") or "medium"
+    hero_cta_text_val = form.get("hero_cta_text") or None
+    hero_cta_link_val = form.get("hero_cta_link") or None
     # Optional generic link for the section (stored in extra_data)
     form_link = form.get("section_link") or None
     if form_link:
@@ -1346,6 +1345,12 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
         section_subtitle=(raw_sub or None),
         section_description=(raw_desc or None),
         hero_images=hero_images_list,
+        hero_image_url=None,
+        hero_cta_text=hero_cta_text_val,
+        hero_cta_link=hero_cta_link_val,
+        hero_style=hero_style_val,
+        hero_text_color=hero_text_color_val,
+        hero_height=hero_height_val,
         section_link=section_link_value,
         sort_order=int(form.get("sort_order") or 0),
         is_active=bool(form.get("is_active")),
@@ -1379,7 +1384,8 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
                         with open(filepath, 'wb') as f:
                             f.write(content)
                         
-                        section.extra_data['hero_image_url'] = f"/static/uploads/hero/{new_filename}"
+                        # store uploaded hero image in dedicated column
+                        section.hero_image_url = f"/static/uploads/hero/{new_filename}"
                         db.add(section)
                         db.commit()
             except Exception as e:
@@ -1460,8 +1466,8 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
                         with open(filepath, 'wb') as f:
                             f.write(content)
                         print(f"DEBUG: File saved to {filepath}")
-                        extra_data['hero_image_url'] = f"/static/uploads/hero/{new_filename}"
-                        print(f"DEBUG: Set hero_image_url to {extra_data['hero_image_url']}")
+                        # store in dedicated column on later update
+                        uploaded_hero_url = f"/static/uploads/hero/{new_filename}"
                         image_uploaded = True
             except Exception as e:
                 print(f"ERROR uploading hero image: {str(e)}")
@@ -1472,15 +1478,11 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         if not image_uploaded:
             existing_image = form.get("existing_hero_image")
             if existing_image and existing_image.strip():
-                extra_data['hero_image_url'] = existing_image
+                uploaded_hero_url = existing_image
                 print(f"DEBUG: Keeping existing image: {existing_image}")
         
-        # Save other hero settings
-        extra_data['hero_cta_text'] = form.get("hero_cta_text") or None
-        extra_data['hero_cta_link'] = form.get("hero_cta_link") or None
-        extra_data['hero_style'] = form.get("hero_style") or "overlay"
-        extra_data['hero_text_color'] = form.get("hero_text_color") or "white"
-        extra_data['hero_height'] = form.get("hero_height") or "medium"
+        # Save other hero settings into dedicated variables (already captured above)
+        pass
 
     # Parse hero_images textarea into list when updating
     raw_hero_images = form.get("hero_images") or None
@@ -1496,6 +1498,17 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
     if form_link:
         extra_data['link'] = form_link
     section_link_value = form_link or section.section_link
+    # Apply uploaded hero image URL (if any) to dedicated column
+    if 'uploaded_hero_url' in locals() and uploaded_hero_url:
+        hero_image_url_value = uploaded_hero_url
+    else:
+        hero_image_url_value = section.hero_image_url
+    # Hero other dedicated values from form (fall back to existing)
+    hero_cta_text_val = form.get("hero_cta_text") or section.hero_cta_text
+    hero_cta_link_val = form.get("hero_cta_link") or section.hero_cta_link
+    hero_style_val = form.get("hero_style") or section.hero_style or "overlay"
+    hero_text_color_val = form.get("hero_text_color") or section.hero_text_color or "white"
+    hero_height_val = form.get("hero_height") or section.hero_height or "medium"
     
     # Update section
     section.extra_data = extra_data
@@ -1509,6 +1522,12 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         section_subtitle=section.section_subtitle,
         section_description=section.section_description,
         section_link=section_link_value,
+        hero_image_url=hero_image_url_value,
+        hero_cta_text=hero_cta_text_val,
+        hero_cta_link=hero_cta_link_val,
+        hero_style=hero_style_val,
+        hero_text_color=hero_text_color_val,
+        hero_height=hero_height_val,
         hero_images=hero_images_list,
         sort_order=section.sort_order,
         is_active=section.is_active,

@@ -222,7 +222,10 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                             images.append(img)
                 except Exception:
                     pass
-            # prefer hero image from extra_data if no structured list
+            # prefer hero image_url column if present
+            if not images and getattr(section, 'hero_image_url', None):
+                images.append(section.hero_image_url)
+            # prefer hero image from extra_data if no structured list and no dedicated column
             if not images and section.extra_data and isinstance(section.extra_data, dict):
                 hero_img = section.extra_data.get("hero_image_url")
                 if hero_img:
