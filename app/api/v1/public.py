@@ -261,6 +261,26 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
 
 
 # =====================================
+# Pages by college slug + page slug
+# Example: /ips-acadmy/home
+# =====================================
+@router.get("/{college_slug}/{page_slug}")
+def get_page_by_college_and_slug(college_slug: str, page_slug: str, db: Session = Depends(get_db)):
+    # Find college by slug
+    college = db.query(College).filter(College.slug == college_slug, College.is_active == True).first()
+    if not college:
+        raise HTTPException(status_code=404, detail="College not found")
+
+    # Find page by slug for this college
+    page = db.query(Page).filter(Page.slug == page_slug, Page.college_id == college.id, Page.is_active == True).first()
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found for this college")
+
+    # Reuse existing page details builder
+    return get_page_details(page.id, db)
+
+
+# =====================================
 # COURSES - Public Routes
 # =====================================
 
