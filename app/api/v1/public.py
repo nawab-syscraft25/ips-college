@@ -2,7 +2,9 @@
 Public API routes for frontend website consumption.
 These routes are publicly accessible without authentication.
 """
-from fastapi import APIRouter, Query, HTTPException, Depends
+from fastapi import APIRouter, Query, HTTPException, Depends, Request
+from fastapi.templating import Jinja2Templates
+from pathlib import Path
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -47,6 +49,10 @@ class EnquirySubmitRequest(BaseModel):
     college_id: Optional[int] = None
 
 router = APIRouter()
+
+# Resolve templates directory relative to project root for server-side rendering
+templates_dir = Path(__file__).resolve().parents[3] / "templet"
+templates = Jinja2Templates(directory=str(templates_dir))
 
 # =====================================
 # COLLEGES - Public Routes
@@ -205,16 +211,15 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
     # Get college info
     college = db.query(College).filter(College.id == page.college_id).first() if page.college_id else None
     
-    # Build clean sections response
+    # Build clean sections response tailored for Angular frontend
     sections_data = []
     for section in sections:
         items = db.query(SectionItem).filter(SectionItem.section_id == section.id).order_by(SectionItem.sort_order).all()
         
-        # Clean section data - only essential fields
+        # Section data optimized for frontend section types
         if section.section_type == "HERO":
-            # Simplified hero representation: images (one or many), title, description, optional color
+            # Hero: images (single or multiple), title, description, color, optional CTA
             images = []
-            # prefer structured hero_images column if present
             if getattr(section, 'hero_images', None):
                 try:
                     for img in section.hero_images:
@@ -222,18 +227,14 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                             images.append(img)
                 except Exception:
                     pass
-            # prefer hero image_url column if present
             if not images and getattr(section, 'hero_image_url', None):
                 images.append(section.hero_image_url)
-            # prefer hero image from extra_data if no structured list and no dedicated column
             if not images and section.extra_data and isinstance(section.extra_data, dict):
                 hero_img = section.extra_data.get("hero_image_url")
                 if hero_img:
                     images.append(hero_img)
-            # fallback to section.background_image
             if section.background_image and section.background_image not in images:
                 images.append(section.background_image)
-            # include any item images as additional slides
             for i in items:
                 if i.image_url and i.image_url not in images:
                     images.append(i.image_url)
@@ -245,20 +246,88 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                 "description": section.section_description,
                 "color": section.hero_text_color or section.background_color or None,
                 "images": images,
+                "cta_text": items[0].cta_text if items and items[0].cta_text else None,
+                "cta_link": items[0].cta_link if items and items[0].cta_link else None,
             }
-        else:
+        
+        elif section.section_type == "STATS":
+            # Stats: array of {value, label} for displaying numbers/metrics
+            section_obj = {
+                "id": section.id,
+                "type": section.section_type,
+                "title": section.section_title,
+                "subtitle": section.section_subtitle,
+                "stats": [
+                    {
+                        "value": i.title,  # e.g., "30" or "500+"
+                        "label": i.subtitle or i.description,  # e.g., "Years Legacy"
+                    }
+                    for i in items
+                ]
+            }
+        
+        elif section.section_type in ["TEXT", "ABOUT"]:
+            # Text/About: title, description, optional button
             section_obj = {
                 "id": section.id,
                 "type": section.section_type,
                 "title": section.section_title,
                 "subtitle": section.section_subtitle,
                 "description": section.section_description,
-                "background_image": section.background_image,
+                "cta_text": items[0].cta_text if items and items[0].cta_text else None,
+                "cta_link": items[0].cta_link if items and items[0].cta_link else section.section_link,
+            }
+        
+        elif section.section_type == "ACCORDION":
+            # Accordion: title + items for expandable lists (e.g., courses by category)
+            section_obj = {
+                "id": section.id,
+                "type": section.section_type,
+                "title": section.section_title,
+                "subtitle": section.section_subtitle,
+                "description": section.section_description,
+                "items": [
+                    {
+                        "id": i.id,
+                        "title": i.title,  # Category name (e.g., "Management")
+                        "content": i.description,  # Content when expanded
+                    }
+                    for i in items
+                ]
+            }
+        
+        elif section.section_type in ["BADGES", "ACCREDITATION"]:
+            # Badges/Accreditation: grid of logos or achievements
+            section_obj = {
+                "id": section.id,
+                "type": section.section_type,
+                "title": section.section_title,
+                "subtitle": section.section_subtitle,
+                "items": [
+                    {
+                        "title": i.title,
+                        "subtitle": i.subtitle,
+                        "description": i.description,
+                        "image_url": i.image_url,
+                    }
+                    for i in items
+                ]
+            }
+        
+        else:
+            # Generic fallback for CARDS, FACILITIES, FACULTY, etc.
+            section_obj = {
+                "id": section.id,
+                "type": section.section_type,
+                "title": section.section_title,
+                "subtitle": section.section_subtitle,
+                "description": section.section_description,
                 "background_color": section.background_color,
                 "items": [
                     {
                         "id": i.id,
                         "title": i.title,
+                        "subtitle": i.subtitle,
                         "description": i.description,
                         "image_url": i.image_url,
                         "cta_text": i.cta_text,
@@ -267,10 +336,6 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                     for i in items
                 ]
             }
-
-        # Add extra_data only for non-hero sections (keep HERO payload minimal)
-        if section.section_type != "HERO" and section.extra_data:
-            section_obj["extra_data"] = section.extra_data
 
         sections_data.append(section_obj)
     
@@ -294,6 +359,42 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
             "sections": sections_data,
         }
     }
+
+
+@router.get("/", include_in_schema=False)
+def home(request: Request, db: Session = Depends(get_db)):
+    """Server-rendered homepage driven by the Page/Sections in the DB.
+    It finds the page with slug 'home' (or the first active page) and renders
+    the sections using the page builder macros in templates/includes.
+    """
+    # Try to find an explicit home page
+    page = db.query(Page).filter(Page.slug == 'home', Page.is_active == True).first()
+    if not page:
+        page = db.query(Page).filter(Page.page_type == 'home', Page.is_active == True).first()
+    if not page:
+        page = db.query(Page).filter(Page.is_active == True).order_by(Page.id).first()
+
+    if not page:
+        # No page to render; return a minimal message
+        return templates.TemplateResponse("index.html", {"request": request, "page": None, "courses": {}, "faculty": {}, "placement": {}, "facilities": {}})
+
+    # Load sections and attach items to each section
+    sections = db.query(PageSection).filter(PageSection.page_id == page.id, PageSection.is_active == True).order_by(PageSection.sort_order).all()
+    for s in sections:
+        items = db.query(SectionItem).filter(SectionItem.section_id == s.id).order_by(SectionItem.sort_order).all()
+        # attach items list so macros can iterate
+        setattr(s, 'items', items)
+
+    # Attach sections to page object for macros expecting page.sections
+    setattr(page, 'sections', sections)
+
+    # Lightweight datasets (can be expanded later)
+    courses = {}
+    faculty = {}
+    placement = {}
+    facilities = {}
+
+    return templates.TemplateResponse("index.html", {"request": request, "page": page, "courses": courses, "faculty": faculty, "placement": placement, "facilities": facilities})
 
 
 # =====================================

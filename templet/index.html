@@ -1,0 +1,36 @@
+{% from 'includes/page_builder_macros.html' import render_page %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title if page else 'Home' }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+      .site-header {padding: 1rem 0; text-align: center;}
+      .site-footer {padding: 2rem 0; text-align: center; color: #6b7280}
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1>{{ page.title if page else 'Welcome' }}</h1>
+      </div>
+    </header>
+
+    {% if page %}
+      {{ render_page(page, courses, faculty, placement, facilities) }}
+    {% else %}
+      <main class="container py-5">
+        <p>No content available. Please create a home page in the admin.</p>
+      </main>
+    {% endif %}
+
+    <footer class="site-footer">
+      <div class="container">
+        <small>&copy; {{ ("%d" % (now.year)) if now is defined else '' }} IPS Academy</small>
+      </div>
+    </footer>
+  </body>
+</html>
