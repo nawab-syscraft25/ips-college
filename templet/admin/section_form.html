@@ -69,8 +69,16 @@
           <input name="section_title" class="form-control" placeholder="e.g., Welcome to our campus" value="{{ section.section_title if section else '' }}">
         </div>
         <div class="mb-3">
-          <label class="form-label">Section Subtitle / Description</label>
-          <input name="section_subtitle" class="form-control" placeholder="Secondary heading or description" value="{{ section.section_subtitle if section else '' }}">
+          <label class="form-label">Section Subtitle</label>
+          <input name="section_subtitle" class="form-control" placeholder="Short subtitle (max 255 chars)" value="{{ section.section_subtitle if section else '' }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Section Description</label>
+          <textarea name="section_description" class="form-control" rows="5" placeholder="Longer description / body text (use this for rich content)">{{ section.section_description if section else '' }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Optional Link</label>
+          <input name="section_link" class="form-control" placeholder="Optional URL (e.g. /about-us or https://...)" value="{{ (section.extra_data.get('link') if section and section.extra_data else '') }}">
         </div>
       </div>
       <div class="col-md-4">

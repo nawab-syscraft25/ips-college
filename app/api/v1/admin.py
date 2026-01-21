@@ -345,7 +345,8 @@ async def update_shared_section(request: Request, section_id: int, db: Session =
         return RedirectResponse(url="/admin/cms/shared-sections", status_code=303)
     section.section_type = form.get("section_type") or "CONTENT"
     section.section_title = form.get("section_title") or None
-    section.section_subtitle = form.get("section_subtitle") or None
+    section.section_subtitle = (form.get("section_subtitle") or None)
+    section.section_description = (form.get("section_description") or None)
     section.sort_order = int(form.get("sort_order") or 0)
     section.is_active = bool(form.get("is_active"))
     db.add(section)
@@ -1312,12 +1313,25 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
         extra_data['hero_height'] = form.get("hero_height") or "medium"
         extra_data['hero_cta_text'] = form.get("hero_cta_text") or None
         extra_data['hero_cta_link'] = form.get("hero_cta_link") or None
+    # Optional generic link for the section (stored in extra_data)
+    form_link = form.get("section_link") or None
+    if form_link:
+        extra_data['link'] = form_link
     
+    # Protect against overlong subtitle values (MySQL VARCHAR(255)).
+    raw_sub = form.get("section_subtitle") or None
+    raw_desc = form.get("section_description") or None
+    if raw_sub and len(raw_sub) > 255:
+        if not raw_desc:
+            raw_desc = raw_sub
+        raw_sub = raw_sub[:255]
+
     section = PageSection(
         page_id=page_id,
         section_type=section_type,
         section_title=form.get("section_title") or None,
-        section_subtitle=form.get("section_subtitle") or None,
+        section_subtitle=(raw_sub or None),
+        section_description=(raw_desc or None),
         sort_order=int(form.get("sort_order") or 0),
         is_active=bool(form.get("is_active")),
         extra_data=extra_data if extra_data else None
@@ -1381,14 +1395,28 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
     if not section:
         return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
     
+    # When updating, also guard subtitle length and promote to description
+    raw_sub = form.get("section_subtitle") or None
+    raw_desc = form.get("section_description") or None
+    if raw_sub and len(raw_sub) > 255:
+        if not raw_desc:
+            raw_desc = raw_sub
+        raw_sub = raw_sub[:255]
+
     section.section_type = form.get("section_type") or "CONTENT"
     section.section_title = form.get("section_title") or None
-    section.section_subtitle = form.get("section_subtitle") or None
+    section.section_subtitle = (raw_sub or None)
+    section.section_description = (raw_desc or None)
     section.sort_order = int(form.get("sort_order") or 0)
     section.is_active = bool(form.get("is_active"))
     
     # Handle type-specific data (HERO section)
     extra_data = section.extra_data or {}
+    # Save optional link from the form into extra_data
+    form_link = form.get("section_link") or None
+    if form_link:
+        extra_data['link'] = form_link
+
     if section.section_type == "HERO":
         # Handle hero image upload
         hero_image = form.get("hero_image")
@@ -1449,6 +1477,7 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         section_type=section.section_type,
         section_title=section.section_title,
         section_subtitle=section.section_subtitle,
+        section_description=section.section_description,
         sort_order=section.sort_order,
         is_active=section.is_active,
         extra_data=extra_data

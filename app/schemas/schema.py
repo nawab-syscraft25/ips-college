@@ -120,6 +120,7 @@ class PageSection(Base):
     section_title: Mapped[str] = mapped_column(String(255), nullable=True)
     section_subtitle: Mapped[str] = mapped_column(String(255), nullable=True)
     section_description: Mapped[str] = mapped_column(Text, nullable=True)
+    section_link: Mapped[str] = mapped_column(String(1024), nullable=True)
     # Background configuration
     background_type: Mapped[str] = mapped_column(String(50), nullable=True, default="none")  # none, color, image, gradient
     background_color: Mapped[str] = mapped_column(String(20), nullable=True)
