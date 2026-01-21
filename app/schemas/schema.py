@@ -131,7 +131,7 @@ class PageSection(Base):
     # Extra data for type-specific fields (hero image, CTA, etc.)
     extra_data: Mapped[dict] = mapped_column(JSON, nullable=True)
     # Optional structured hero images (list of image URLs)
-    hero_images: Mapped[dict] = mapped_column(JSON, nullable=True)
+    hero_images: Mapped[list] = mapped_column(JSON, nullable=True)
 
     page = relationship("Page", back_populates="sections")
     items = relationship("SectionItem", back_populates="section", cascade="all, delete-orphan", order_by="SectionItem.sort_order")

@@ -78,7 +78,7 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Optional Link</label>
-          <input name="section_link" class="form-control" placeholder="Optional URL (e.g. /about-us or https://...)" value="{{ (section.extra_data.get('link') if section and section.extra_data else '') }}">
+          <input name="section_link" class="form-control" placeholder="Optional URL (e.g. /about-us or https://...)" value="{{ section.section_link if section and section.section_link else (section.extra_data.get('link') if section and section.extra_data else '') }}">
         </div>
       </div>
       <div class="col-md-4">

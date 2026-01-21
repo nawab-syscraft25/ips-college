@@ -1317,6 +1317,8 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
     form_link = form.get("section_link") or None
     if form_link:
         extra_data['link'] = form_link
+    # also store on dedicated column
+    section_link_value = form_link or None
     
     # Protect against overlong subtitle values (MySQL VARCHAR(255)).
     raw_sub = form.get("section_subtitle") or None
@@ -1344,6 +1346,7 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
         section_subtitle=(raw_sub or None),
         section_description=(raw_desc or None),
         hero_images=hero_images_list,
+        section_link=section_link_value,
         sort_order=int(form.get("sort_order") or 0),
         is_active=bool(form.get("is_active")),
         extra_data=extra_data if extra_data else None
@@ -1488,6 +1491,11 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
             hero_images_list = parsed if parsed else None
         except Exception:
             hero_images_list = hero_images_list
+    # Section link: save to dedicated column and extra_data for backward compatibility
+    form_link = form.get("section_link") or None
+    if form_link:
+        extra_data['link'] = form_link
+    section_link_value = form_link or section.section_link
     
     # Update section
     section.extra_data = extra_data
@@ -1500,6 +1508,7 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         section_title=section.section_title,
         section_subtitle=section.section_subtitle,
         section_description=section.section_description,
+        section_link=section_link_value,
         hero_images=hero_images_list,
         sort_order=section.sort_order,
         is_active=section.is_active,
