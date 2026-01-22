@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
+<!-- Include Quill Rich Text Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
 <style>
   .section-form {
     background: white;
@@ -69,12 +73,9 @@
           <input name="section_title" class="form-control" placeholder="e.g., Welcome to our campus" value="{{ section.section_title if section else '' }}">
         </div>
         <div class="mb-3">
-          <label class="form-label">Section Subtitle</label>
-          <input name="section_subtitle" class="form-control" placeholder="Short subtitle (max 255 chars)" value="{{ section.section_subtitle if section else '' }}">
-        </div>
-        <div class="mb-3">
           <label class="form-label">Section Description</label>
-          <textarea name="section_description" class="form-control" rows="5" placeholder="Longer description / body text (use this for rich content)">{{ section.section_description if section else '' }}</textarea>
+          <div id="section_description" style="background: white; min-height: 200px;"></div>
+          <textarea name="section_description" style="display: none;">{{ section.section_description if section else '' }}</textarea>
         </div>
         <div class="mb-3">
           <label class="form-label">Optional Link</label>
@@ -210,9 +211,44 @@
     }
   }
   
+  // Initialize Rich Text Editor (Quill)
+  let quill;
+  
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
     updateTypeFields();
+    
+    // Initialize Quill editor
+    quill = new Quill('#section_description', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+          [{ 'font': [] }],
+          [{ 'size': ['small', false, 'large', 'huge'] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'color': [] }, { 'background': [] }],
+          [{ 'script': 'sub'}, { 'script': 'super' }],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'indent': '-1'}, { 'indent': '+1' }],
+          [{ 'align': [] }],
+          ['link', 'image', 'video'],
+          ['clean']
+        ]
+      },
+      placeholder: 'Enter section description with formatting...'
+    });
+    
+    // Set initial content if editing
+    const descriptionTextarea = document.querySelector('textarea[name="section_description"]');
+    if (descriptionTextarea && descriptionTextarea.value) {
+      quill.root.innerHTML = descriptionTextarea.value;
+    }
+    
+    // Update hidden textarea before form submission
+    document.querySelector('form').addEventListener('submit', function() {
+      descriptionTextarea.value = quill.root.innerHTML;
+    });
   });
 </script>
 
