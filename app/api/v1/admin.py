@@ -1519,12 +1519,37 @@ async def create_section_item(request: Request, page_id: int, section_id: int, d
     if isinstance(_require_login(request), RedirectResponse):
         return _require_login(request)
     form = await request.form()
+    
+    # Handle image file upload
+    image_url = form.get("image_url") or None
+    image_file = form.get("image_file")
+    if image_file and hasattr(image_file, 'filename') and image_file.filename:
+        import os
+        from pathlib import Path
+        
+        # Create uploads directory
+        upload_dir = Path("templet/static/uploads/items")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        file_ext = os.path.splitext(image_file.filename)[1]
+        import time
+        filename = f"item_{int(time.time())}{file_ext}"
+        file_path = upload_dir / filename
+        
+        # Save the file
+        with open(file_path, "wb") as f:
+            content = await image_file.read()
+            f.write(content)
+        
+        image_url = f"/static/uploads/items/{filename}"
+    
     item = SectionItem(
         section_id=section_id,
         title=form.get("title") or None,
         subtitle=form.get("subtitle") or None,
         description=form.get("description") or None,
-        image_url=form.get("image_url") or None,
+        image_url=image_url,
         video_url=form.get("video_url") or None,
         cta_text=form.get("cta_text") or None,
         cta_link=form.get("cta_link") or None,
@@ -1544,10 +1569,35 @@ async def update_section_item(request: Request, page_id: int, section_id: int, i
     item = db.query(SectionItem).filter(SectionItem.id == item_id).first()
     if not item:
         return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
+    
+    # Handle image file upload
+    image_url = form.get("image_url") or item.image_url
+    image_file = form.get("image_file")
+    if image_file and hasattr(image_file, 'filename') and image_file.filename:
+        import os
+        from pathlib import Path
+        
+        # Create uploads directory
+        upload_dir = Path("templet/static/uploads/items")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        file_ext = os.path.splitext(image_file.filename)[1]
+        import time
+        filename = f"item_{int(time.time())}{file_ext}"
+        file_path = upload_dir / filename
+        
+        # Save the file
+        with open(file_path, "wb") as f:
+            content = await image_file.read()
+            f.write(content)
+        
+        image_url = f"/static/uploads/items/{filename}"
+    
     item.title = form.get("title") or None
     item.subtitle = form.get("subtitle") or None
     item.description = form.get("description") or None
-    item.image_url = form.get("image_url") or None
+    item.image_url = image_url
     item.video_url = form.get("video_url") or None
     item.cta_text = form.get("cta_text") or None
     item.cta_link = form.get("cta_link") or None
