@@ -77,10 +77,6 @@
           <div id="section_description" style="background: white; min-height: 200px;"></div>
           <textarea name="section_description" style="display: none;">{{ section.section_description if section else '' }}</textarea>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Optional Link</label>
-          <input name="section_link" class="form-control" placeholder="Optional URL (e.g. /about-us or https://...)" value="{{ section.section_link if section and section.section_link else (section.extra_data.get('link') if section and section.extra_data else '') }}">
-        </div>
       </div>
       <div class="col-md-4">
         <div class="mb-3">
@@ -128,7 +124,34 @@
               </button>
             </div>
           </div>
+          {% elif section and section.extra_data and section.extra_data.get('images') %}
+          <div id="currentHeroImage" style="margin-top: 1rem; position: relative; display: inline-block;">
+            <small class="text-muted">Current image:</small><br>
+            <div style="position: relative; display: inline-block; margin-top: 0.5rem;">
+              <img src="{{ section.extra_data.get('images')[0] }}" alt="Current hero image" class="image-preview" style="max-width: 300px; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+              <button type="button" onclick="deleteCurrentHeroImage()" style="position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" title="Delete image">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
           {% endif %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Call-to-Action Text (optional)</label>
+            <input name="cta_text" class="form-control" placeholder="e.g., Learn More, Apply Now" value="{{ section.extra_data.get('cta_text') if section and section.extra_data else '' }}">
+            <small class="form-text text-muted">Button text for the hero section</small>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Call-to-Action Link (optional)</label>
+            <input name="cta_link" class="form-control" placeholder="e.g., /admissions or https://..." value="{{ section.extra_data.get('cta_link') if section and section.extra_data else '' }}">
+            <small class="form-text text-muted">Where the button should link to</small>
+          </div>
         </div>
       </div>
     </div>
