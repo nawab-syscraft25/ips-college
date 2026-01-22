@@ -114,13 +114,19 @@
     <div class="type-specific-fields">
       <div class="mb-3">
         <label class="form-label">Upload Hero Image</label>
-        <input type="file" name="hero_image" class="form-control" accept="image/*" onchange="previewHeroImage(event)">
+        <input type="file" name="hero_image" id="heroImageInput" class="form-control" accept="image/*" onchange="previewHeroImage(event)">
         <small class="form-text text-muted">Upload a hero image (JPG, PNG, WebP supported)</small>
+        <input type="hidden" name="delete_hero_image" id="deleteHeroImage" value="0">
         <div id="heroImagePreview">
           {% if section and section.hero_images and section.hero_images|length > 0 %}
-          <div style="margin-top: 1rem;">
+          <div id="currentHeroImage" style="margin-top: 1rem; position: relative; display: inline-block;">
             <small class="text-muted">Current image:</small><br>
-            <img src="{{ section.hero_images[0] }}" alt="Current hero image" class="image-preview" style="max-width: 300px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+            <div style="position: relative; display: inline-block; margin-top: 0.5rem;">
+              <img src="{{ section.hero_images[0] }}" alt="Current hero image" class="image-preview" style="max-width: 300px; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+              <button type="button" onclick="deleteCurrentHeroImage()" style="position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" title="Delete image">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
           </div>
           {% endif %}
         </div>
@@ -205,9 +211,27 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         const preview = document.getElementById('heroImagePreview');
-        preview.innerHTML = '<div style="margin-top: 1rem;"><small class="text-muted">New image preview:</small><br><img src="' + e.target.result + '" alt="Preview" class="image-preview" style="max-width: 300px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;"></div>';
+        preview.innerHTML = '<div style="margin-top: 1rem;"><small class="text-muted">New image preview:</small><br><div style="position: relative; display: inline-block; margin-top: 0.5rem;"><img src="' + e.target.result + '" alt="Preview" class="image-preview" style="max-width: 300px; border-radius: 0.5rem; border: 1px solid #e5e7eb;"><button type="button" onclick="clearNewHeroImage()" style="position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" title="Remove"><i class="fas fa-times"></i></button></div></div>';
       };
       reader.readAsDataURL(file);
+    }
+  }
+  
+  function deleteCurrentHeroImage() {
+    if (confirm('Are you sure you want to delete this image?')) {
+      document.getElementById('currentHeroImage').style.display = 'none';
+      document.getElementById('deleteHeroImage').value = '1';
+      document.getElementById('heroImageInput').value = '';
+    }
+  }
+  
+  function clearNewHeroImage() {
+    document.getElementById('heroImageInput').value = '';
+    const currentImage = document.getElementById('currentHeroImage');
+    if (currentImage) {
+      document.getElementById('heroImagePreview').innerHTML = currentImage.outerHTML;
+    } else {
+      document.getElementById('heroImagePreview').innerHTML = '';
     }
   }
   
