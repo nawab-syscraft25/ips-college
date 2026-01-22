@@ -220,13 +220,23 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
         if section.section_type == "HERO":
             # Hero: images (single or multiple), title, description, color, optional CTA
             images = []
-            if getattr(section, 'hero_images', None):
+            
+            # Check extra_data first for images
+            if section.extra_data and isinstance(section.extra_data, dict):
+                extra_images = section.extra_data.get("images")
+                if extra_images and isinstance(extra_images, list):
+                    images.extend([img for img in extra_images if img])
+            
+            # Then check hero_images column
+            if not images and getattr(section, 'hero_images', None):
                 try:
                     for img in section.hero_images:
                         if img and img not in images:
                             images.append(img)
                 except Exception:
                     pass
+            
+            # Fallback to other sources
             if not images and getattr(section, 'hero_image_url', None):
                 images.append(section.hero_image_url)
             if not images and section.extra_data and isinstance(section.extra_data, dict):
@@ -235,9 +245,19 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                     images.append(hero_img)
             if section.background_image and section.background_image not in images:
                 images.append(section.background_image)
-            for i in items:
-                if i.image_url and i.image_url not in images:
-                    images.append(i.image_url)
+            
+            # Get CTA from extra_data (new format)
+            cta_text = None
+            cta_link = None
+            if section.extra_data and isinstance(section.extra_data, dict):
+                cta_text = section.extra_data.get("cta_text")
+                cta_link = section.extra_data.get("cta_link")
+            
+            # Fallback to items if not in extra_data (backward compatibility)
+            if not cta_text and items and items[0].cta_text:
+                cta_text = items[0].cta_text
+            if not cta_link and items and items[0].cta_link:
+                cta_link = items[0].cta_link
 
             section_obj = {
                 "id": section.id,
@@ -245,9 +265,9 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                 "title": section.section_title,
                 "description": section.section_description,
                 "color": section.hero_text_color or section.background_color or None,
-                "images": images,
-                "cta_text": items[0].cta_text if items and items[0].cta_text else None,
-                "cta_link": items[0].cta_link if items and items[0].cta_link else None,
+                "images": images if images else None,
+                "cta_text": cta_text,
+                "cta_link": cta_link,
             }
         
         elif section.section_type == "STATS":
