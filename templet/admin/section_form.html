@@ -112,25 +112,17 @@
 
     <div class="type-specific-fields">
       <div class="mb-3">
-        <label class="form-label">Hero Images (one URL per line)</label>
-        <textarea name="hero_images" class="form-control" rows="4" placeholder="One image URL per line">{% if section and section.hero_images %}{{ section.hero_images | join('\n') }}{% elif section and section.hero_image_url %}{{ section.hero_image_url }}{% endif %}</textarea>
-        <small class="form-text text-muted">Provide one or more image URLs. If you provide a single URL, it will be used as the single hero image.</small>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Text Color (optional)</label>
-        <select name="hero_text_color" class="form-select">
-          {% set text_color = section.hero_text_color if section and section.hero_text_color else '' %}
-          <option value="" {% if text_color == '' %}selected{% endif %}>Default</option>
-          <option value="white" {% if text_color == 'white' %}selected{% endif %}>White</option>
-          <option value="dark" {% if text_color == 'dark' %}selected{% endif %}>Dark</option>
-          <option value="primary" {% if text_color == 'primary' %}selected{% endif %}>Primary Color</option>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Hero Description (optional)</label>
-        <textarea name="section_description" class="form-control" rows="3" placeholder="Hero description / caption">{{ section.section_description if section else '' }}</textarea>
+        <label class="form-label">Upload Hero Image</label>
+        <input type="file" name="hero_image" class="form-control" accept="image/*" onchange="previewHeroImage(event)">
+        <small class="form-text text-muted">Upload a hero image (JPG, PNG, WebP supported)</small>
+        <div id="heroImagePreview">
+          {% if section and section.hero_images and section.hero_images|length > 0 %}
+          <div style="margin-top: 1rem;">
+            <small class="text-muted">Current image:</small><br>
+            <img src="{{ section.hero_images[0] }}" alt="Current hero image" class="image-preview" style="max-width: 300px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -193,6 +185,25 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '<div style="margin-top: 1rem;"><small class="text-muted">New image preview:</small><br><img src="' + e.target.result + '" alt="Preview" class="image-preview" style="max-width: 300px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;"></div>';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  function previewHeroImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+      // Check file size (max 15MB)
+      if (file.size > 15 * 1024 * 1024) {
+        alert('File is too large. Maximum size is 15MB.');
+        event.target.value = '';
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('heroImagePreview');
         preview.innerHTML = '<div style="margin-top: 1rem;"><small class="text-muted">New image preview:</small><br><img src="' + e.target.result + '" alt="Preview" class="image-preview" style="max-width: 300px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;"></div>';
       };
       reader.readAsDataURL(file);
