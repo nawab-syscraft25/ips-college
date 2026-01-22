@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
+<!-- Include Quill Rich Text Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
 <h1 class="mb-4">
   {{ 'Edit' if action == 'edit' else 'Add' }} Item —
   Section {{ section.section_title or section.section_type }}
 </h1>
 
-<form method="post" action="{% if action == 'edit' %}/admin/pages/{{ page_id }}/sections/{{ section.id }}/items/{{ item.id }}/edit{% else %}/admin/pages/{{ page_id }}/sections/{{ section.id }}/items/new{% endif %}">
+<form method="post" action="{% if action == 'edit' %}/admin/pages/{{ page_id }}/sections/{{ section.id }}/items/{{ item.id }}/edit{% else %}/admin/pages/{{ page_id }}/sections/{{ section.id }}/items/new{% endif %}" enctype="multipart/form-data">
   <div class="row">
     <div class="col-md-7">
       <div class="mb-3">
@@ -18,13 +22,28 @@
       </div>
       <div class="mb-3">
         <label class="form-label">Description</label>
-        <textarea name="description" class="form-control" rows="3">{{ item.description if item else '' }}</textarea>
+        <div id="item_description" style="background: white; min-height: 150px;"></div>
+        <textarea name="description" style="display: none;">{{ item.description if item else '' }}</textarea>
       </div>
     </div>
     <div class="col-md-5">
       <div class="mb-3">
-        <label class="form-label">Image URL</label>
-        <input name="image_url" class="form-control" value="{{ item.image_url if item else '' }}">
+        <label class="form-label">Upload Image</label>
+        <input type="file" name="image_file" id="imageFileInput" class="form-control" accept="image/*" onchange="previewItemImage(event)">
+        <small class="form-text text-muted">Upload an image (JPG, PNG, WebP supported)</small>
+        <div id="imagePreview">
+          {% if item and item.image_url %}
+          <div style="margin-top: 1rem;">
+            <small class="text-muted">Current image:</small><br>
+            <img src="{{ item.image_url }}" alt="Current image" style="max-width: 200px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Or Image URL</label>
+        <input name="image_url" class="form-control" placeholder="https://..." value="{{ item.image_url if item else '' }}">
+        <small class="form-text text-muted">Alternatively, provide an image URL</small>
       </div>
       <div class="mb-3">
         <label class="form-label">Video URL</label>
@@ -48,5 +67,57 @@
   <button type="submit" class="btn btn-primary">Save</button>
   <a href="/admin/pages/{{ page_id }}/sections" class="btn btn-link">Back</a>
 </form>
+
+<script>
+  let quill;
+  
+  function previewItemImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 15 * 1024 * 1024) {
+        alert('File is too large. Maximum size is 15MB.');
+        event.target.value = '';
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '<div style="margin-top: 1rem;"><small class="text-muted">New image preview:</small><br><img src="' + e.target.result + '" alt="Preview" style="max-width: 200px; margin-top: 0.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;"></div>';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Quill editor
+    quill = new Quill('#item_description', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ 'color': [] }, { 'background': [] }],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['link'],
+          ['clean']
+        ]
+      },
+      placeholder: 'Enter item description...'
+    });
+    
+    // Set initial content if editing
+    const descriptionTextarea = document.querySelector('textarea[name="description"]');
+    if (descriptionTextarea && descriptionTextarea.value) {
+      quill.root.innerHTML = descriptionTextarea.value;
+    }
+    
+    // Update hidden textarea before form submission
+    document.querySelector('form').addEventListener('submit', function() {
+      descriptionTextarea.value = quill.root.innerHTML;
+    });
+  });
+</script>
+
 {% endblock %}
 

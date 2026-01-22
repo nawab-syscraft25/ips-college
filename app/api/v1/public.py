@@ -286,6 +286,35 @@ def get_page_details(page_id: int, db: Session = Depends(get_db)):
                 ]
             }
         
+        elif section.section_type == "INFO_BAR":
+            # INFO_BAR: Stats (first 5 items) + Accreditation (remaining items)
+            stats_items = items[:5] if len(items) > 5 else items
+            accreditation_items = items[5:] if len(items) > 5 else []
+            
+            section_obj = {
+                "id": section.id,
+                "type": section.section_type,
+                "title": section.section_title,
+                "subtitle": section.section_subtitle,
+                "description": section.section_description,
+                "stats": [
+                    {
+                        "value": i.title,  # e.g., "30" or "500+"
+                        "label": i.subtitle,  # e.g., "Years Legacy"
+                    }
+                    for i in stats_items
+                ],
+                "accreditations": [
+                    {
+                        "title": i.title,  # e.g., "NAAC A++"
+                        "subtitle": i.subtitle,  # e.g., "Accredited Management Institute"
+                        "description": i.description,
+                        "image_url": i.image_url,
+                    }
+                    for i in accreditation_items
+                ]
+            }
+        
         elif section.section_type in ["TEXT", "ABOUT"]:
             # Text/About: title, description, optional button
             section_obj = {

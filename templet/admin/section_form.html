@@ -87,6 +87,7 @@
             <option value="TEXT" {% if current_type == 'TEXT' %}selected{% endif %}>📝 Text / Content</option>
             <option value="ABOUT" {% if current_type == 'ABOUT' %}selected{% endif %}>ℹ️ About</option>
             <option value="STATS" {% if current_type == 'STATS' %}selected{% endif %}>📊 Statistics</option>
+            <option value="INFO_BAR" {% if current_type == 'INFO_BAR' %}selected{% endif %}>📈 Stats & Accreditation Bar</option>
             <option value="CARDS" {% if current_type == 'CARDS' %}selected{% endif %}>🎴 Cards / Grid</option>
             <option value="COURSES" {% if current_type == 'COURSES' %}selected{% endif %}>📚 Courses</option>
             <option value="FACULTY" {% if current_type == 'FACULTY' %}selected{% endif %}>👥 Faculty</option>
@@ -157,6 +158,27 @@
     </div>
   </div>
 
+  <!-- INFO BAR Section (Stats + Accreditation) -->
+  <div id="infoBarFields" class="form-section" style="display: none;">
+    <div class="form-section-title">
+      <i class="fas fa-award"></i> Stats & Accreditation Settings
+    </div>
+
+    <div class="type-specific-fields">
+      <p class="mb-3"><strong>Note:</strong> This section displays statistics and accreditation info. Use "Manage Items" after saving to add stats and accreditation badges.</p>
+      
+      <div class="alert alert-info">
+        <h6><i class="fas fa-info-circle"></i> Stats Items (First 5 items)</h6>
+        <p class="mb-0">Add items with <strong>title</strong> (e.g., "30", "500+") and <strong>subtitle</strong> (e.g., "Years Legacy")</p>
+      </div>
+      
+      <div class="alert alert-success">
+        <h6><i class="fas fa-trophy"></i> Accreditation Items (Remaining items)</h6>
+        <p class="mb-0">Add items with <strong>title</strong> (e.g., "NAAC A++"), <strong>subtitle</strong> (description), and optional <strong>image</strong></p>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings -->
   <div class="form-section">
     <div class="form-section-title">
@@ -173,11 +195,17 @@
       <div class="col-md-4">
         <div class="form-check mt-4">
           <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {% if (section and section.is_active) or not section %}checked{% endif %}>
-          <label class="form-check-label" for="is_active"><strong>Active</strong></label>
-        </div>
-      </div>
-    </div>
-  </div>
+    const infoBarFields = document.getElementById('infoBarFields');
+    
+    // Hide all type-specific fields first
+    heroFields.style.display = 'none';
+    infoBarFields.style.display = 'none';
+    
+    // Show relevant fields based on type
+    if (type === 'HERO') {
+      heroFields.style.display = 'block';
+    } else if (type === 'INFO_BAR') {
+      infoBarFields.style.display = 'block
 
   <!-- Actions -->
   <div class="btn-group-custom">

@@ -26,12 +26,11 @@ wheelhouse/
 
 # Database
 *.sqlite3
+temp_auto_push.bat
 *.db
 
 # IDEs
-.vscode/
 .idea/
-.vscode/*
 
 # OS files
 .DS_Store
@@ -57,3 +56,5 @@ node_modules/
 .history/**/*
 alembic.ini
 help.txt
+temp_interactive_push.bat
+.gitignore
