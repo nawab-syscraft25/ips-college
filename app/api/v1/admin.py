@@ -1306,14 +1306,13 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
     section_type = form.get("section_type") or "CONTENT"
     extra_data = {}
     
-    # Handle type-specific data (HERO section) - only images and optional text color
-    hero_text_color_val = form.get("hero_text_color") or None
-    # Optional generic link for the section (stored in extra_data)
-    form_link = form.get("section_link") or None
-    if form_link:
-        extra_data['link'] = form_link
-    # also store on dedicated column
-    section_link_value = form_link or None
+    # Handle CTA fields
+    cta_text = form.get("cta_text") or None
+    cta_link = form.get("cta_link") or None
+    if cta_text:
+        extra_data['cta_text'] = cta_text
+    if cta_link:
+        extra_data['cta_link'] = cta_link
     
     # Protect against overlong subtitle values (MySQL VARCHAR(255)).
     raw_sub = form.get("section_subtitle") or None
@@ -1323,16 +1322,31 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
             raw_desc = raw_sub
         raw_sub = raw_sub[:255]
 
-    # Parse hero_images textarea (one URL per line) into a JSON list
-    raw_hero_images = form.get("hero_images") or None
+    # Handle hero image file upload
     hero_images_list = None
-    if raw_hero_images:
-        try:
-            hero_images_list = [ln.strip() for ln in raw_hero_images.splitlines() if ln.strip()]
-            if not hero_images_list:
-                hero_images_list = None
-        except Exception:
-            hero_images_list = None
+    hero_image_file = form.get("hero_image")
+    if hero_image_file and hasattr(hero_image_file, 'filename') and hero_image_file.filename:
+        import os
+        from pathlib import Path
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = Path("templet/static/uploads/hero")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        file_ext = os.path.splitext(hero_image_file.filename)[1]
+        import time
+        filename = f"hero_{int(time.time())}{file_ext}"
+        file_path = upload_dir / filename
+        
+        # Save the file
+        with open(file_path, "wb") as f:
+            content = await hero_image_file.read()
+            f.write(content)
+        
+        # Store the URL in hero_images list
+        hero_images_list = [f"/static/uploads/hero/{filename}"]
+        extra_data['images'] = hero_images_list
 
     section = PageSection(
         page_id=page_id,
@@ -1341,8 +1355,8 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
         section_subtitle=(raw_sub or None),
         section_description=(raw_desc or None),
         hero_images=hero_images_list,
-        hero_text_color=hero_text_color_val,
-        section_link=section_link_value,
+        hero_text_color=None,
+        section_link=None,
         sort_order=int(form.get("sort_order") or 0),
         is_active=bool(form.get("is_active")),
         extra_data=extra_data if extra_data else None
@@ -1350,9 +1364,6 @@ async def create_page_section(request: Request, page_id: int, db: Session = Depe
     db.add(section)
     db.commit()
     db.refresh(section)
-    
-    # Note: file-based hero image upload and CTA/style/height fields are not used —
-    # hero images should be provided via the `hero_images` textarea (one URL per line).
     
     return RedirectResponse(url=f"/admin/pages/{page_id}/sections", status_code=303)
 
@@ -1396,30 +1407,54 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
     
     # Handle type-specific data (HERO section)
     extra_data = section.extra_data or {}
-    # Save optional link from the form into extra_data
-    form_link = form.get("section_link") or None
-    if form_link:
-        extra_data['link'] = form_link
+    
+    # Handle CTA fields
+    cta_text = form.get("cta_text") or None
+    cta_link = form.get("cta_link") or None
+    if cta_text:
+        extra_data['cta_text'] = cta_text
+    elif 'cta_text' in extra_data:
+        del extra_data['cta_text']
+    
+    if cta_link:
+        extra_data['cta_link'] = cta_link
+    elif 'cta_link' in extra_data:
+        del extra_data['cta_link']
 
-    # Hero-specific file upload / CTA / style / height are intentionally not handled here.
-    # The hero should be managed via `hero_images` (one or more URLs), `section_description`, and `hero_text_color`.
-
-    # Parse hero_images textarea into list when updating
-    raw_hero_images = form.get("hero_images") or None
+    # Handle hero image file upload
     hero_images_list = section.hero_images if getattr(section, 'hero_images', None) else None
-    if raw_hero_images is not None:
-        try:
-            parsed = [ln.strip() for ln in raw_hero_images.splitlines() if ln.strip()]
-            hero_images_list = parsed if parsed else None
-        except Exception:
-            hero_images_list = hero_images_list
-    # Section link: save to dedicated column and extra_data for backward compatibility
-    form_link = form.get("section_link") or None
-    if form_link:
-        extra_data['link'] = form_link
-    section_link_value = form_link or section.section_link
-    # Only hero_text_color and hero_images are considered for HERO sections
-    hero_text_color_val = form.get("hero_text_color") or section.hero_text_color or None
+    
+    # Check if user wants to delete the current image
+    delete_hero_image = form.get("delete_hero_image") == "1"
+    if delete_hero_image:
+        hero_images_list = None
+        if 'images' in extra_data:
+            del extra_data['images']
+    
+    # Handle new hero image upload
+    hero_image_file = form.get("hero_image")
+    if hero_image_file and hasattr(hero_image_file, 'filename') and hero_image_file.filename:
+        import os
+        from pathlib import Path
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = Path("templet/static/uploads/hero")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        file_ext = os.path.splitext(hero_image_file.filename)[1]
+        import time
+        filename = f"hero_{int(time.time())}{file_ext}"
+        file_path = upload_dir / filename
+        
+        # Save the file
+        with open(file_path, "wb") as f:
+            content = await hero_image_file.read()
+            f.write(content)
+        
+        # Store the URL in hero_images list
+        hero_images_list = [f"/static/uploads/hero/{filename}"]
+        extra_data['images'] = hero_images_list
     
     # Update section
     section.extra_data = extra_data
@@ -1432,8 +1467,8 @@ async def update_page_section(request: Request, page_id: int, section_id: int, d
         section_title=section.section_title,
         section_subtitle=section.section_subtitle,
         section_description=section.section_description,
-        section_link=section_link_value,
-        hero_text_color=hero_text_color_val,
+        section_link=None,
+        hero_text_color=None,
         hero_images=hero_images_list,
         sort_order=section.sort_order,
         is_active=section.is_active,
